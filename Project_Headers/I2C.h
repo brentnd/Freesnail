@@ -13,7 +13,10 @@
 #define I2C_Wait()             while((I2C0_S & I2C_S_IICIF_MASK)==0) {} \
                                I2C0_S |= I2C_S_IICIF_MASK;
 
-void I2C_WriteRegister(unsigned char u8SlaveAddress, unsigned char u8RegisterAddress, /*unsigned*/ char u8Data);
-unsigned char I2C_ReadRegister(unsigned char u8SlaveAddress, unsigned char u8RegisterAddress);
-void I2C_ReadMultiRegisters(unsigned char u8SlaveAddress, unsigned char u8RegisterAddress, unsigned char n, unsigned char *r);
+void I2C_WriteRegister(unsigned char u8SlaveAddress,
+		unsigned char u8RegisterAddress, /*unsigned*/char u8Data);
+unsigned char I2C_ReadRegister(unsigned char u8SlaveAddress,
+		unsigned char u8RegisterAddress);
+void I2C_ReadMultiRegisters(unsigned char u8SlaveAddress,
+		unsigned char u8RegisterAddress, unsigned char n, unsigned char *r);
 void Pause(int number);

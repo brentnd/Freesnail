@@ -14,7 +14,7 @@
 #define SERVO_DUTY_CENTER		((SERVO_DUTY_RANGE)/2)+SERVO_DUTY_LEFT
 
 void InitServo();
-void SetServo( int Position );
-void SetServoDutyCycle( float DutyCycle );
+void SetServo(int Position);
+void SetServoDutyCycle(float DutyCycle);
 
 #endif /* SERVO_H_ */

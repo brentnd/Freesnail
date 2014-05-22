@@ -118,12 +118,12 @@ void uart0_init(int sysclk, int baud) {
 
 char uart_getchar() {
 	/* Wait until character has been received */
-	while (!(UART0_S1 & UART_S1_RDRF_MASK));
+	while (!(UART0_S1 & UART_S1_RDRF_MASK))
+		;
 
 	/* Return the 8-bit data from the receiver */
-	return UART0_D;
+	return UART0_D ;
 }
-
 
 void uart_putchar(char ch) {
 	/* Wait until space is available in the FIFO */

@@ -4,7 +4,7 @@
 static uint8_t CurrentADC_State = ADC_STATE_INIT;
 volatile uint8_t CurrentLineScanPixel = 0;
 volatile uint8_t CurrentLineScanChannel = 0;
-volatile uint16_t BatSenseADC_Value = 0; 
+volatile uint16_t BatSenseADC_Value = 0;
 
 /******************************************************************************
  Function 1. Name	AUTO CAL ROUTINE   
@@ -15,8 +15,7 @@ volatile uint16_t BatSenseADC_Value = 0;
  Notes         		Calibrates the ADC16. Required to meet specifications 
  after reset and before a conversion is initiated.
  ******************************************************************************/
-unsigned char ADC_Cal(ADC_MemMapPtr adcmap)
-{
+unsigned char ADC_Cal(ADC_MemMapPtr adcmap) {
 
 	unsigned short cal_var;
 
@@ -27,8 +26,7 @@ unsigned char ADC_Cal(ADC_MemMapPtr adcmap)
 	ADC_SC3_REG(adcmap) |= ADC_SC3_CAL_MASK;      // Start CAL
 	while ((ADC_SC1_REG(adcmap,A)& ADC_SC1_COCO_MASK ) == COCO_NOT ); // Wait calibration end
 
-	if ((ADC_SC3_REG(adcmap) & ADC_SC3_CALF_MASK) == CALF_FAIL)
-	{
+	if ((ADC_SC3_REG(adcmap) & ADC_SC3_CALF_MASK) == CALF_FAIL) {
 		return (1);    // Check for Calibration fail error and return 
 	}
 	// Calculate plus-side calibration
@@ -76,8 +74,7 @@ unsigned char ADC_Cal(ADC_MemMapPtr adcmap)
  elements with the desired ADC configuration.
  ******************************************************************************/
 
-void ADC_Config_Alt(ADC_MemMapPtr adcmap, tADC_ConfigPtr ADC_CfgPtr)
-{
+void ADC_Config_Alt(ADC_MemMapPtr adcmap, tADC_ConfigPtr ADC_CfgPtr) {
 	ADC_CFG1_REG(adcmap) = ADC_CfgPtr->CONFIG1;
 	ADC_CFG2_REG(adcmap) = ADC_CfgPtr->CONFIG2;
 	ADC_CV1_REG(adcmap) = ADC_CfgPtr->COMPARE1;
@@ -89,8 +86,7 @@ void ADC_Config_Alt(ADC_MemMapPtr adcmap, tADC_ConfigPtr ADC_CfgPtr)
 	ADC_SC1_REG(adcmap,B)= ADC_CfgPtr->STATUS1B;
 }
 
-void ADC_Read_Cal(ADC_MemMapPtr adcmap, tADC_Cal_Blk *blk)
-{
+void ADC_Read_Cal(ADC_MemMapPtr adcmap, tADC_Cal_Blk *blk) {
 	blk->OFS = ADC_OFS_REG(adcmap);
 	blk->PG = ADC_PG_REG(adcmap);
 	blk->MG = ADC_MG_REG(adcmap);
@@ -111,8 +107,7 @@ void ADC_Read_Cal(ADC_MemMapPtr adcmap, tADC_Cal_Blk *blk)
 
 }
 
-void InitADC0()
-{
+void InitADC0() {
 	tADC_Config Master_Adc0_Config;
 
 	SIM_SCGC6 |= (SIM_SCGC6_ADC0_MASK);
@@ -163,8 +158,7 @@ void InitADC0()
 	ADC_Config_Alt(ADC0_BASE_PTR, &Master_Adc0_Config);
 }
 
-void InitADCs()
-{
+void InitADCs() {
 
 	InitADC0();
 
@@ -192,18 +186,15 @@ void InitADCs()
 	enable_irq(INT_ADC0 - 16);
 }
 
-void PIT_IRQHandler()
-{
+void PIT_IRQHandler() {
 	PIT_TFLG0 = PIT_TFLG_TIF_MASK; //Turn off the Pit 0 Irq flag 
 	CurrentADC_State = ADC_STATE_CAPTURE_BATTERY_LEVEL;
-	ADC0_CFG2  |= ADC_CFG2_MUXSEL_MASK; //Select the B side of the mux
-	ADC0_SC1A  =  BAT_SENSE_CHANNEL| ADC_SC1_AIEN_MASK;
-
+	ADC0_CFG2 |= ADC_CFG2_MUXSEL_MASK;//Select the B side of the mux
+	ADC0_SC1A = BAT_SENSE_CHANNEL| ADC_SC1_AIEN_MASK;
 
 }
 
-void ADC0_IRQHandler()
-{
+void ADC0_IRQHandler() {
 	uint8_t Junk;
 	switch (CurrentADC_State)
 	//choose state for current ADC operation
@@ -211,80 +202,78 @@ void ADC0_IRQHandler()
 	default:
 		Junk = ADC0_RA ;
 		break;
-		
-		case ADC_STATE_CAPTURE_BATTERY_LEVEL:
-			
-			BatSenseADC_Value = ADC0_RA;
-			
-			TAOS_SI_HIGH; //set SI high
-			CurrentADC_State = ADC_STATE_CAPTURE_LINE_SCAN; //line up state machine to linescan next
-			CurrentLineScanPixel = 0; //start at the leftmost pixel
-			TAOS_CLK_HIGH; //toggle the clock to read first val
 
-			for (Junk = 0; Junk < 50; Junk++)
+		case ADC_STATE_CAPTURE_BATTERY_LEVEL:
+
+		BatSenseADC_Value = ADC0_RA;
+
+		TAOS_SI_HIGH; //set SI high
+				CurrentADC_State = ADC_STATE_CAPTURE_LINE_SCAN;//line up state machine to linescan next
+				CurrentLineScanPixel = 0;//start at the leftmost pixel
+				TAOS_CLK_HIGH;//toggle the clock to read first val
+
+				for (Junk = 0; Junk < 50; Junk++)
 				;
 
-			TAOS_SI_LOW;
+				TAOS_SI_LOW;
 
-			ADC0_CFG2 |= ADC_CFG2_MUXSEL_MASK; //Select the B side of the mux
-			ADC0_SC1A  =  LINESCAN0_CHANNEL| ADC_SC1_AIEN_MASK;
-			
-		break;
-			
-			
-		case ADC_STATE_CAPTURE_LINE_SCAN:
+				ADC0_CFG2 |= ADC_CFG2_MUXSEL_MASK;//Select the B side of the mux
+				ADC0_SC1A = LINESCAN0_CHANNEL| ADC_SC1_AIEN_MASK;
 
-		if(CurrentLineScanPixel<128)
-		{
-			LineScanImageWorkingBuffer[CurrentLineScanPixel] = ADC0_RA; //get a pixel value
-				ADC0_SC1A |= ADC_SC1_AIEN_MASK;//clear the interrupt flag
-				CurrentLineScanPixel++;//move to next pixel
+				break;
 
-				TAOS_CLK_LOW;//cycle the clock to read out the next one
-				for(Junk = 0;Junk<50;Junk++)
-				{}
-				TAOS_CLK_HIGH;
+				case ADC_STATE_CAPTURE_LINE_SCAN:
 
-			}
-			else
-			{
-				// done with the capture sequence.  we can wait for the PIT0 IRQ to restart
-
-				TAOS_CLK_HIGH;//cycle the clock to end the sequence
-
-				for(Junk = 0;Junk<50;Junk++)
+				if(CurrentLineScanPixel<128)
 				{
-				}
+					LineScanImageWorkingBuffer[CurrentLineScanPixel] = ADC0_RA; //get a pixel value
+					ADC0_SC1A |= ADC_SC1_AIEN_MASK;//clear the interrupt flag
+					CurrentLineScanPixel++;//move to next pixel
 
-				TAOS_CLK_LOW;
-				CurrentADC_State = ADC_STATE_INIT; //reset the ADC state machine
+					TAOS_CLK_LOW;//cycle the clock to read out the next one
+					for(Junk = 0;Junk<50;Junk++)
+					{}
+					TAOS_CLK_HIGH;
 
-				//swap the buffer
-
-				if(LineScanWorkingBuffer == 0)//switch the working and reading buffers
-				{
-					LineScanWorkingBuffer = 1;
-					LineScanImageWorkingBuffer = &LineScanImageBuffer[1][0];
-					LineScanImage = &LineScanImageBuffer[0][0];
 				}
 				else
 				{
-					LineScanWorkingBuffer = 0;
-					LineScanImageWorkingBuffer = &LineScanImageBuffer[0][0];
-					LineScanImage = &LineScanImageBuffer[1][0];
+					// done with the capture sequence.  we can wait for the PIT0 IRQ to restart
+
+					TAOS_CLK_HIGH;//cycle the clock to end the sequence
+
+					for(Junk = 0;Junk<50;Junk++)
+					{
+					}
+
+					TAOS_CLK_LOW;
+					CurrentADC_State = ADC_STATE_INIT; //reset the ADC state machine
+
+					//swap the buffer
+
+					if(LineScanWorkingBuffer == 0)//switch the working and reading buffers
+					{
+						LineScanWorkingBuffer = 1;
+						LineScanImageWorkingBuffer = &LineScanImageBuffer[1][0];
+						LineScanImage = &LineScanImageBuffer[0][0];
+					}
+					else
+					{
+						LineScanWorkingBuffer = 0;
+						LineScanImageWorkingBuffer = &LineScanImageBuffer[0][0];
+						LineScanImage = &LineScanImageBuffer[1][0];
+					}
+
+					LineScanImageReady = TRUE; //set flag indicating data is ready
 				}
 
-				LineScanImageReady = TRUE; //set flag indicating data is ready
-			}
+				break;
 
-			break;
+			}
 
 		}
 
-	}
-
-float ReadBatteryVoltage()
-{
-    return (((float)BatSenseADC_Value/(float)(ADC_MAX_CODE)) * 3.0);// * ((47000.0+10000.0)/10000.0);
+float ReadBatteryVoltage() {
+	return (((float) BatSenseADC_Value / (float) (ADC_MAX_CODE))* 3.0); // * ((47000.0+10000.0)/10000.0);
 }
 

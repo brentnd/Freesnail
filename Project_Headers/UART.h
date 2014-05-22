@@ -14,8 +14,8 @@ void uart_putchar(char ch);
 
 int uart_getchar_present();
 
-int io_printf(const char *, ... );
+int io_printf(const char *, ...);
 
-int sprintf(char *, const char *, ... );
+int sprintf(char *, const char *, ...);
 
 #endif

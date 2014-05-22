@@ -6,6 +6,6 @@
 #define MOTOR_FREQUENCY			20000
 
 void InitMotor();
-void SetMotors( int MotorB, int MotorA);
+void SetMotors(int MotorB, int MotorA);
 
 #endif /* MOTOR_H_ */

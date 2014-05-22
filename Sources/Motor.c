@@ -15,8 +15,7 @@
  * Initialize the PWM clock and signal for the
  * DC motors. Sets up the signals and
  */
-void InitMotor()
-{
+void InitMotor() {
 	SIM_SOPT2 |= SIM_SOPT2_PLLFLLSEL_MASK;
 	SIM_SOPT2 &= ~(SIM_SOPT2_TPMSRC_MASK);
 	SIM_SOPT2 |= SIM_SOPT2_TPMSRC(1);
@@ -56,8 +55,7 @@ void InitMotor()
  * @param1 MotorB (Left)  - unsigned int (-100 to 100) for motor B
  * @param2 MotorA (Right) - unsigned int (-100 to 100) for motor A
  */
-void SetMotors(int MotorB, int MotorA)
-{
+void SetMotors(int MotorB, int MotorA) {
 	// Update count compare to effectively change duty cycle
 	TPM0_C2V = (uint16_t) ((TPM0_MOD * (MotorA+100)) / 200);
 	TPM0_C3V = TPM0_C2V;

@@ -3,7 +3,7 @@
 
 void InitLineScanCamera();
 void LineScanImageCamera();
-void SetLineScanExposureTime(uint32_t  TimeIn_uS);
+void SetLineScanExposureTime(uint32_t TimeIn_uS);
 void medianFilter();
 void stretchFilter();
 int maxValue();
@@ -23,11 +23,11 @@ int GetLineIndexRight();
 #define TAOS_SI_HIGH   GPIOD_PSOR = (1<<7)
 #define TAOS_SI_LOW    GPIOD_PCOR =	(1<<7)
 
-extern volatile uint16_t  *LineScanImageWorkingBuffer;
-extern volatile uint16_t  *LineScanImage;
-extern volatile uint16_t  LineScanImageBuffer[2][128];
-extern volatile uint8_t  LineScanWorkingBuffer;
-extern volatile uint8_t  LineScanImageReady;
+extern volatile uint16_t *LineScanImageWorkingBuffer;
+extern volatile uint16_t *LineScanImage;
+extern volatile uint16_t LineScanImageBuffer[2][128];
+extern volatile uint8_t LineScanWorkingBuffer;
+extern volatile uint8_t LineScanImageReady;
 uint16_t LineScanData[100];
 uint8_t histogram[4096];
 

@@ -55,9 +55,9 @@
 #define BUTTON_B_PRESSED	((GPIOC_PDIR&BUTTON_B)>0)
 
 // Initialize the car
-void	Initialize();
+void Initialize();
 
 // Initialize the GPIO pins
-void    InitGPIO();
+void InitGPIO();
 
 #endif /* CONFIG_H_ */

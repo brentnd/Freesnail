@@ -1,4 +1,3 @@
-
 #ifndef ADC_H_
 #define ADC_H_
 
@@ -22,7 +21,6 @@
 #define ADC0_DLYB     0x4000                                // ADC0 trigger B delay 
 #define ADC1_DLYA     0x6000                                // ADC1 trigger A delay
 #define ADC1_DLYB     0x7fff                                // ADC1 trigger B delay 
-
 #define ADC0A_DONE   0x01       
 #define ADC0B_DONE   0x02       
 #define ADC1A_DONE   0x04       
@@ -188,8 +186,7 @@
 /////////// The above values fit into the structure below to select ADC/PGA
 /////////// configuration desired:
 
-typedef struct adc_cfg
-{
+typedef struct adc_cfg {
 	uint8_t CONFIG1;
 	uint8_t CONFIG2;
 	uint16_t COMPARE1;
@@ -203,8 +200,7 @@ typedef struct adc_cfg
 
 #define CAL_BLK_NUMREC 18 
 
-typedef struct adc_cal
-{
+typedef struct adc_cal {
 
 	uint16_t OFS;
 	uint16_t PG;
@@ -244,7 +240,6 @@ void InitADCs();
 void PIT0_IRQ();
 void ADC0_IRQ();
 float ReadBatteryVoltage();
-
 
 #endif /* __ADC16_H__ */
 

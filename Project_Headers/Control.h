@@ -1,11 +1,10 @@
 #ifndef CONTROL_H_
 #define CONTROL_H_
 
-
 #define SCUT 25
 #define MCUT 65
 
-int straight_speed,medium_speed,turn_speed,brake_speed;
+int straight_speed, medium_speed, turn_speed, brake_speed;
 
 int speedC;
 
