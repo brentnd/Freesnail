@@ -1,0 +1,1141 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Control.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	straight_speed,4,4
+  18              		.comm	medium_speed,4,4
+  19              		.comm	turn_speed,4,4
+  20              		.comm	brake_speed,4,4
+  21              		.comm	speedC,4,4
+  22              		.comm	LineScanData,200,4
+  23              		.comm	histogram,4096,4
+  24              		.comm	kp,8,8
+  25              		.comm	ki,8,8
+  26              		.comm	kd,8,8
+  27              		.comm	lastError,8,8
+  28              		.comm	llastError,8,8
+  29              		.comm	lastOutput,4,4
+  30              		.comm	AccData,6,4
+  31              		.comm	Xout,2,2
+  32              		.comm	Yout,2,2
+  33              		.comm	Zout,2,2
+  34              		.comm	Xoffset,1,1
+  35              		.comm	Yoffset,1,1
+  36              		.comm	Zoffset,1,1
+  37              		.comm	ramp,4,4
+  38              		.section	.text.SetVelocity,"ax",%progbits
+  39              		.align	2
+  40              		.global	SetVelocity
+  41              		.code	16
+  42              		.thumb_func
+  44              	SetVelocity:
+  45              	.LFB0:
+  46              		.file 1 "../Sources/Control.c"
+   1:../Sources/Control.c **** #include "Config.h"
+   2:../Sources/Control.c **** 
+   3:../Sources/Control.c **** /*
+   4:../Sources/Control.c ****  * File: Control.c
+   5:../Sources/Control.c ****  * Freescale Cup 2014
+   6:../Sources/Control.c ****  * Team: Freesnail
+   7:../Sources/Control.c ****  * Author: Brent Dimmig <bnd8678@rit.edu>
+   8:../Sources/Control.c ****  * 		   Ben Kraines 	<bjk6868@rit.edu>
+   9:../Sources/Control.c ****  * 
+  10:../Sources/Control.c ****  * Description: Control methods for Freescale Cup
+  11:../Sources/Control.c ****  */
+  12:../Sources/Control.c **** 
+  13:../Sources/Control.c **** /*
+  14:../Sources/Control.c ****  * Turn the car using Servo and DC motor differential drive
+  15:../Sources/Control.c ****  */
+  16:../Sources/Control.c **** void SetVelocity(int direction, int speed)
+  17:../Sources/Control.c **** {
+  47              		.loc 1 17 0
+  48              		.cfi_startproc
+  49 0000 80B5     		push	{r7, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 8
+  52              		.cfi_offset 7, -8
+  53              		.cfi_offset 14, -4
+  54 0002 84B0     		sub	sp, sp, #16
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_offset 24
+  57 0004 00AF     		add	r7, sp, #0
+  58              	.LCFI2:
+  59              		.cfi_def_cfa_register 7
+  60 0006 7860     		str	r0, [r7, #4]
+  61 0008 3960     		str	r1, [r7]
+  18:../Sources/Control.c **** 	int speed_left, speed_right;
+  19:../Sources/Control.c **** 	
+  20:../Sources/Control.c **** 	// Turn servo to direction
+  21:../Sources/Control.c **** 	SetServo(direction);
+  62              		.loc 1 21 0
+  63 000a 7B68     		ldr	r3, [r7, #4]
+  64 000c 181C     		mov	r0, r3
+  65 000e FFF7FEFF 		bl	SetServo
+  22:../Sources/Control.c **** 
+  23:../Sources/Control.c **** 	// Left turn
+  24:../Sources/Control.c **** 	if(direction < -MCUT)
+  66              		.loc 1 24 0
+  67 0012 7B68     		ldr	r3, [r7, #4]
+  68 0014 1A1C     		mov	r2, r3
+  69 0016 4132     		add	r2, r2, #65
+  70 0018 06DA     		bge	.L2
+  25:../Sources/Control.c **** 	{
+  26:../Sources/Control.c **** 		speed_left	= speed-2;
+  71              		.loc 1 26 0
+  72 001a 3B68     		ldr	r3, [r7]
+  73 001c 023B     		sub	r3, r3, #2
+  74 001e FB60     		str	r3, [r7, #12]
+  27:../Sources/Control.c **** 		speed_right = speed+5;
+  75              		.loc 1 27 0
+  76 0020 3B68     		ldr	r3, [r7]
+  77 0022 0533     		add	r3, r3, #5
+  78 0024 BB60     		str	r3, [r7, #8]
+  79 0026 0DE0     		b	.L3
+  80              	.L2:
+  28:../Sources/Control.c **** 	}
+  29:../Sources/Control.c **** 	// Right turn
+  30:../Sources/Control.c **** 	else if(direction > MCUT)
+  81              		.loc 1 30 0
+  82 0028 7B68     		ldr	r3, [r7, #4]
+  83 002a 412B     		cmp	r3, #65
+  84 002c 06DD     		ble	.L4
+  31:../Sources/Control.c **** 	{
+  32:../Sources/Control.c **** 		speed_left	= speed+5;
+  85              		.loc 1 32 0
+  86 002e 3B68     		ldr	r3, [r7]
+  87 0030 0533     		add	r3, r3, #5
+  88 0032 FB60     		str	r3, [r7, #12]
+  33:../Sources/Control.c **** 		speed_right = speed-2;
+  89              		.loc 1 33 0
+  90 0034 3B68     		ldr	r3, [r7]
+  91 0036 023B     		sub	r3, r3, #2
+  92 0038 BB60     		str	r3, [r7, #8]
+  93 003a 03E0     		b	.L3
+  94              	.L4:
+  34:../Sources/Control.c **** 	}
+  35:../Sources/Control.c **** 	else
+  36:../Sources/Control.c **** 	{
+  37:../Sources/Control.c **** 		speed_left	= speed;
+  95              		.loc 1 37 0
+  96 003c 3B68     		ldr	r3, [r7]
+  97 003e FB60     		str	r3, [r7, #12]
+  38:../Sources/Control.c **** 		speed_right = speed;
+  98              		.loc 1 38 0
+  99 0040 3B68     		ldr	r3, [r7]
+ 100 0042 BB60     		str	r3, [r7, #8]
+ 101              	.L3:
+  39:../Sources/Control.c **** 	}
+  40:../Sources/Control.c **** 	
+  41:../Sources/Control.c **** 	// Going down the ramp
+  42:../Sources/Control.c **** 	if(ramp == -1)
+ 102              		.loc 1 42 0
+ 103 0044 0E4B     		ldr	r3, .L7
+ 104 0046 1B68     		ldr	r3, [r3]
+ 105 0048 0133     		add	r3, r3, #1
+ 106 004a 06D1     		bne	.L5
+  43:../Sources/Control.c **** 	{
+  44:../Sources/Control.c **** 		speed_left	= brake_speed;
+ 107              		.loc 1 44 0
+ 108 004c 0D4B     		ldr	r3, .L7+4
+ 109 004e 1B68     		ldr	r3, [r3]
+ 110 0050 FB60     		str	r3, [r7, #12]
+  45:../Sources/Control.c **** 		speed_right = brake_speed;
+ 111              		.loc 1 45 0
+ 112 0052 0C4B     		ldr	r3, .L7+4
+ 113 0054 1B68     		ldr	r3, [r3]
+ 114 0056 BB60     		str	r3, [r7, #8]
+ 115 0058 09E0     		b	.L6
+ 116              	.L5:
+  46:../Sources/Control.c **** 	}
+  47:../Sources/Control.c **** 	// Going up the ramp
+  48:../Sources/Control.c **** 	else if(ramp == 1)
+ 117              		.loc 1 48 0
+ 118 005a 094B     		ldr	r3, .L7
+ 119 005c 1B68     		ldr	r3, [r3]
+ 120 005e 012B     		cmp	r3, #1
+ 121 0060 05D1     		bne	.L6
+  49:../Sources/Control.c **** 	{
+  50:../Sources/Control.c **** 		speed_left	= straight_speed;
+ 122              		.loc 1 50 0
+ 123 0062 094B     		ldr	r3, .L7+8
+ 124 0064 1B68     		ldr	r3, [r3]
+ 125 0066 FB60     		str	r3, [r7, #12]
+  51:../Sources/Control.c **** 		speed_right = straight_speed;
+ 126              		.loc 1 51 0
+ 127 0068 074B     		ldr	r3, .L7+8
+ 128 006a 1B68     		ldr	r3, [r3]
+ 129 006c BB60     		str	r3, [r7, #8]
+ 130              	.L6:
+  52:../Sources/Control.c **** 	}
+  53:../Sources/Control.c **** 	
+  54:../Sources/Control.c **** 	SetSpeed(speed_left,speed_right);
+ 131              		.loc 1 54 0
+ 132 006e FA68     		ldr	r2, [r7, #12]
+ 133 0070 BB68     		ldr	r3, [r7, #8]
+ 134 0072 101C     		mov	r0, r2
+ 135 0074 191C     		mov	r1, r3
+ 136 0076 FFF7FEFF 		bl	SetSpeed
+  55:../Sources/Control.c **** }
+ 137              		.loc 1 55 0
+ 138 007a BD46     		mov	sp, r7
+ 139 007c 04B0     		add	sp, sp, #16
+ 140              		@ sp needed for prologue
+ 141 007e 80BD     		pop	{r7, pc}
+ 142              	.L8:
+ 143              		.align	2
+ 144              	.L7:
+ 145 0080 00000000 		.word	ramp
+ 146 0084 00000000 		.word	brake_speed
+ 147 0088 00000000 		.word	straight_speed
+ 148              		.cfi_endproc
+ 149              	.LFE0:
+ 151              		.section	.text.SetSpeed,"ax",%progbits
+ 152              		.align	2
+ 153              		.global	SetSpeed
+ 154              		.code	16
+ 155              		.thumb_func
+ 157              	SetSpeed:
+ 158              	.LFB1:
+  56:../Sources/Control.c **** 
+  57:../Sources/Control.c **** /*
+  58:../Sources/Control.c ****  * Set the speed of both DC motors
+  59:../Sources/Control.c ****  * Limited by MAX_SPEED
+  60:../Sources/Control.c ****  * @param speed - integer (0 to 100)
+  61:../Sources/Control.c ****  */
+  62:../Sources/Control.c **** void SetSpeed(int speed_left, int speed_right)
+  63:../Sources/Control.c **** {
+ 159              		.loc 1 63 0
+ 160              		.cfi_startproc
+ 161 0000 80B5     		push	{r7, lr}
+ 162              	.LCFI3:
+ 163              		.cfi_def_cfa_offset 8
+ 164              		.cfi_offset 7, -8
+ 165              		.cfi_offset 14, -4
+ 166 0002 82B0     		sub	sp, sp, #8
+ 167              	.LCFI4:
+ 168              		.cfi_def_cfa_offset 16
+ 169 0004 00AF     		add	r7, sp, #0
+ 170              	.LCFI5:
+ 171              		.cfi_def_cfa_register 7
+ 172 0006 7860     		str	r0, [r7, #4]
+ 173 0008 3960     		str	r1, [r7]
+  64:../Sources/Control.c **** 	SetMotors(speed_left, speed_right);
+ 174              		.loc 1 64 0
+ 175 000a 7A68     		ldr	r2, [r7, #4]
+ 176 000c 3B68     		ldr	r3, [r7]
+ 177 000e 101C     		mov	r0, r2
+ 178 0010 191C     		mov	r1, r3
+ 179 0012 FFF7FEFF 		bl	SetMotors
+  65:../Sources/Control.c **** }
+ 180              		.loc 1 65 0
+ 181 0016 BD46     		mov	sp, r7
+ 182 0018 02B0     		add	sp, sp, #8
+ 183              		@ sp needed for prologue
+ 184 001a 80BD     		pop	{r7, pc}
+ 185              		.cfi_endproc
+ 186              	.LFE1:
+ 188              		.section	.text.ComputeSpeed,"ax",%progbits
+ 189              		.align	2
+ 190              		.global	ComputeSpeed
+ 191              		.code	16
+ 192              		.thumb_func
+ 194              	ComputeSpeed:
+ 195              	.LFB2:
+  66:../Sources/Control.c **** 
+  67:../Sources/Control.c **** /*
+  68:../Sources/Control.c ****  * Calculate the speed based on the current direction of the
+  69:../Sources/Control.c ****  * servos. Currently uses tiered approach. Old was linear
+  70:../Sources/Control.c ****  */
+  71:../Sources/Control.c **** int ComputeSpeed(int direction)
+  72:../Sources/Control.c **** {
+ 196              		.loc 1 72 0
+ 197              		.cfi_startproc
+ 198 0000 80B5     		push	{r7, lr}
+ 199              	.LCFI6:
+ 200              		.cfi_def_cfa_offset 8
+ 201              		.cfi_offset 7, -8
+ 202              		.cfi_offset 14, -4
+ 203 0002 84B0     		sub	sp, sp, #16
+ 204              	.LCFI7:
+ 205              		.cfi_def_cfa_offset 24
+ 206 0004 00AF     		add	r7, sp, #0
+ 207              	.LCFI8:
+ 208              		.cfi_def_cfa_register 7
+ 209 0006 7860     		str	r0, [r7, #4]
+  73:../Sources/Control.c **** 	int disp = 0;
+ 210              		.loc 1 73 0
+ 211 0008 0023     		mov	r3, #0
+ 212 000a FB60     		str	r3, [r7, #12]
+  74:../Sources/Control.c **** 	int new_speed = 0;
+ 213              		.loc 1 74 0
+ 214 000c 0023     		mov	r3, #0
+ 215 000e BB60     		str	r3, [r7, #8]
+  75:../Sources/Control.c **** 	
+  76:../Sources/Control.c **** 	// Speed proportional to turn range
+  77:../Sources/Control.c **** 	// disp = abs(direction);
+  78:../Sources/Control.c **** 	if (direction < 0)
+ 216              		.loc 1 78 0
+ 217 0010 7B68     		ldr	r3, [r7, #4]
+ 218 0012 002B     		cmp	r3, #0
+ 219 0014 03DA     		bge	.L11
+  79:../Sources/Control.c **** 		disp = -direction;
+ 220              		.loc 1 79 0
+ 221 0016 7B68     		ldr	r3, [r7, #4]
+ 222 0018 5B42     		neg	r3, r3
+ 223 001a FB60     		str	r3, [r7, #12]
+ 224 001c 01E0     		b	.L12
+ 225              	.L11:
+  80:../Sources/Control.c **** 	else
+  81:../Sources/Control.c **** 		disp = direction;
+ 226              		.loc 1 81 0
+ 227 001e 7B68     		ldr	r3, [r7, #4]
+ 228 0020 FB60     		str	r3, [r7, #12]
+ 229              	.L12:
+  82:../Sources/Control.c **** 
+  83:../Sources/Control.c **** 	// Straight
+  84:../Sources/Control.c **** 	if (disp < SCUT)
+ 230              		.loc 1 84 0
+ 231 0022 FB68     		ldr	r3, [r7, #12]
+ 232 0024 182B     		cmp	r3, #24
+ 233 0026 18DC     		bgt	.L13
+  85:../Sources/Control.c **** 	{
+  86:../Sources/Control.c **** 		//Increment speed
+  87:../Sources/Control.c **** 		speedC++;
+ 234              		.loc 1 87 0
+ 235 0028 214B     		ldr	r3, .L21
+ 236 002a 1B68     		ldr	r3, [r3]
+ 237 002c 5A1C     		add	r2, r3, #1
+ 238 002e 204B     		ldr	r3, .L21
+ 239 0030 1A60     		str	r2, [r3]
+  88:../Sources/Control.c **** 		if(speedC > 42)
+ 240              		.loc 1 88 0
+ 241 0032 1F4B     		ldr	r3, .L21
+ 242 0034 1B68     		ldr	r3, [r3]
+ 243 0036 2A2B     		cmp	r3, #42
+ 244 0038 02DD     		ble	.L14
+  89:../Sources/Control.c **** 			speedC = 42;
+ 245              		.loc 1 89 0
+ 246 003a 1D4B     		ldr	r3, .L21
+ 247 003c 2A22     		mov	r2, #42
+ 248 003e 1A60     		str	r2, [r3]
+ 249              	.L14:
+  90:../Sources/Control.c **** 		if(speedC > 15)
+ 250              		.loc 1 90 0
+ 251 0040 1B4B     		ldr	r3, .L21
+ 252 0042 1B68     		ldr	r3, [r3]
+ 253 0044 0F2B     		cmp	r3, #15
+ 254 0046 04DD     		ble	.L15
+  91:../Sources/Control.c **** 			new_speed = straight_speed-6;
+ 255              		.loc 1 91 0
+ 256 0048 1A4B     		ldr	r3, .L21+4
+ 257 004a 1B68     		ldr	r3, [r3]
+ 258 004c 063B     		sub	r3, r3, #6
+ 259 004e BB60     		str	r3, [r7, #8]
+ 260 0050 28E0     		b	.L16
+ 261              	.L15:
+  92:../Sources/Control.c **** 		else
+  93:../Sources/Control.c **** 			new_speed = straight_speed;
+ 262              		.loc 1 93 0
+ 263 0052 184B     		ldr	r3, .L21+4
+ 264 0054 1B68     		ldr	r3, [r3]
+ 265 0056 BB60     		str	r3, [r7, #8]
+ 266 0058 24E0     		b	.L16
+ 267              	.L13:
+  94:../Sources/Control.c **** 	}
+  95:../Sources/Control.c **** 	else
+  96:../Sources/Control.c **** 		if(speedC > 8)		
+ 268              		.loc 1 96 0
+ 269 005a 154B     		ldr	r3, .L21
+ 270 005c 1B68     		ldr	r3, [r3]
+ 271 005e 082B     		cmp	r3, #8
+ 272 0060 13DD     		ble	.L17
+  97:../Sources/Control.c **** 		{
+  98:../Sources/Control.c **** 			if(disp < MCUT)
+ 273              		.loc 1 98 0
+ 274 0062 FB68     		ldr	r3, [r7, #12]
+ 275 0064 402B     		cmp	r3, #64
+ 276 0066 07DC     		bgt	.L18
+  99:../Sources/Control.c **** 			{
+ 100:../Sources/Control.c **** 				speedC--;
+ 277              		.loc 1 100 0
+ 278 0068 114B     		ldr	r3, .L21
+ 279 006a 1B68     		ldr	r3, [r3]
+ 280 006c 5A1E     		sub	r2, r3, #1
+ 281 006e 104B     		ldr	r3, .L21
+ 282 0070 1A60     		str	r2, [r3]
+ 101:../Sources/Control.c **** 				new_speed = 0;
+ 283              		.loc 1 101 0
+ 284 0072 0023     		mov	r3, #0
+ 285 0074 BB60     		str	r3, [r7, #8]
+ 286 0076 15E0     		b	.L16
+ 287              	.L18:
+ 102:../Sources/Control.c **** 			}
+ 103:../Sources/Control.c **** 			else
+ 104:../Sources/Control.c **** 			{
+ 105:../Sources/Control.c **** 				speedC -= 2;
+ 288              		.loc 1 105 0
+ 289 0078 0D4B     		ldr	r3, .L21
+ 290 007a 1B68     		ldr	r3, [r3]
+ 291 007c 9A1E     		sub	r2, r3, #2
+ 292 007e 0C4B     		ldr	r3, .L21
+ 293 0080 1A60     		str	r2, [r3]
+ 106:../Sources/Control.c **** 				new_speed = brake_speed;
+ 294              		.loc 1 106 0
+ 295 0082 0D4B     		ldr	r3, .L21+8
+ 296 0084 1B68     		ldr	r3, [r3]
+ 297 0086 BB60     		str	r3, [r7, #8]
+ 298 0088 0CE0     		b	.L16
+ 299              	.L17:
+ 107:../Sources/Control.c **** 			}
+ 108:../Sources/Control.c **** 		}
+ 109:../Sources/Control.c **** 		else
+ 110:../Sources/Control.c **** 		{
+ 111:../Sources/Control.c **** 			speedC = 0;
+ 300              		.loc 1 111 0
+ 301 008a 094B     		ldr	r3, .L21
+ 302 008c 0022     		mov	r2, #0
+ 303 008e 1A60     		str	r2, [r3]
+ 112:../Sources/Control.c **** 			if(disp < MCUT)
+ 304              		.loc 1 112 0
+ 305 0090 FB68     		ldr	r3, [r7, #12]
+ 306 0092 402B     		cmp	r3, #64
+ 307 0094 03DC     		bgt	.L19
+ 113:../Sources/Control.c **** 				new_speed = medium_speed;
+ 308              		.loc 1 113 0
+ 309 0096 094B     		ldr	r3, .L21+12
+ 310 0098 1B68     		ldr	r3, [r3]
+ 311 009a BB60     		str	r3, [r7, #8]
+ 312 009c 02E0     		b	.L16
+ 313              	.L19:
+ 114:../Sources/Control.c **** 			else
+ 115:../Sources/Control.c **** 				new_speed = turn_speed;
+ 314              		.loc 1 115 0
+ 315 009e 084B     		ldr	r3, .L21+16
+ 316 00a0 1B68     		ldr	r3, [r3]
+ 317 00a2 BB60     		str	r3, [r7, #8]
+ 318              	.L16:
+ 116:../Sources/Control.c **** 		}
+ 117:../Sources/Control.c **** 	return new_speed;
+ 319              		.loc 1 117 0
+ 320 00a4 BB68     		ldr	r3, [r7, #8]
+ 118:../Sources/Control.c **** 
+ 119:../Sources/Control.c **** }
+ 321              		.loc 1 119 0
+ 322 00a6 181C     		mov	r0, r3
+ 323 00a8 BD46     		mov	sp, r7
+ 324 00aa 04B0     		add	sp, sp, #16
+ 325              		@ sp needed for prologue
+ 326 00ac 80BD     		pop	{r7, pc}
+ 327              	.L22:
+ 328 00ae C046     		.align	2
+ 329              	.L21:
+ 330 00b0 00000000 		.word	speedC
+ 331 00b4 00000000 		.word	straight_speed
+ 332 00b8 00000000 		.word	brake_speed
+ 333 00bc 00000000 		.word	medium_speed
+ 334 00c0 00000000 		.word	turn_speed
+ 335              		.cfi_endproc
+ 336              	.LFE2:
+ 338              		.section	.text.FinishLine,"ax",%progbits
+ 339              		.align	2
+ 340              		.global	FinishLine
+ 341              		.code	16
+ 342              		.thumb_func
+ 344              	FinishLine:
+ 345              	.LFB3:
+ 120:../Sources/Control.c **** 
+ 121:../Sources/Control.c **** /* Stop the car at the finish */
+ 122:../Sources/Control.c **** void FinishLine()
+ 123:../Sources/Control.c **** {
+ 346              		.loc 1 123 0
+ 347              		.cfi_startproc
+ 348 0000 80B5     		push	{r7, lr}
+ 349              	.LCFI9:
+ 350              		.cfi_def_cfa_offset 8
+ 351              		.cfi_offset 7, -8
+ 352              		.cfi_offset 14, -4
+ 353 0002 00AF     		add	r7, sp, #0
+ 354              	.LCFI10:
+ 355              		.cfi_def_cfa_register 7
+ 124:../Sources/Control.c **** 	Delay_mS(100);
+ 356              		.loc 1 124 0
+ 357 0004 6420     		mov	r0, #100
+ 358 0006 FFF7FEFF 		bl	Delay_mS
+ 125:../Sources/Control.c **** 	SetSpeed(-60,-60);
+ 359              		.loc 1 125 0
+ 360 000a 3C23     		mov	r3, #60
+ 361 000c 5A42     		neg	r2, r3
+ 362 000e 3C23     		mov	r3, #60
+ 363 0010 5B42     		neg	r3, r3
+ 364 0012 101C     		mov	r0, r2
+ 365 0014 191C     		mov	r1, r3
+ 366 0016 FFF7FEFF 		bl	SetSpeed
+ 126:../Sources/Control.c **** 	Delay_mS(400);
+ 367              		.loc 1 126 0
+ 368 001a C823     		mov	r3, #200
+ 369 001c 5B00     		lsl	r3, r3, #1
+ 370 001e 181C     		mov	r0, r3
+ 371 0020 FFF7FEFF 		bl	Delay_mS
+ 127:../Sources/Control.c **** 	SetSpeed(-40,-40);
+ 372              		.loc 1 127 0
+ 373 0024 2823     		mov	r3, #40
+ 374 0026 5A42     		neg	r2, r3
+ 375 0028 2823     		mov	r3, #40
+ 376 002a 5B42     		neg	r3, r3
+ 377 002c 101C     		mov	r0, r2
+ 378 002e 191C     		mov	r1, r3
+ 379 0030 FFF7FEFF 		bl	SetSpeed
+ 128:../Sources/Control.c **** 	Delay_mS(500);
+ 380              		.loc 1 128 0
+ 381 0034 FA23     		mov	r3, #250
+ 382 0036 5B00     		lsl	r3, r3, #1
+ 383 0038 181C     		mov	r0, r3
+ 384 003a FFF7FEFF 		bl	Delay_mS
+ 129:../Sources/Control.c **** 	SetSpeed(-30,-30);
+ 385              		.loc 1 129 0
+ 386 003e 1E23     		mov	r3, #30
+ 387 0040 5A42     		neg	r2, r3
+ 388 0042 1E23     		mov	r3, #30
+ 389 0044 5B42     		neg	r3, r3
+ 390 0046 101C     		mov	r0, r2
+ 391 0048 191C     		mov	r1, r3
+ 392 004a FFF7FEFF 		bl	SetSpeed
+ 130:../Sources/Control.c **** 	Delay_mS(1000);
+ 393              		.loc 1 130 0
+ 394 004e FA23     		mov	r3, #250
+ 395 0050 9B00     		lsl	r3, r3, #2
+ 396 0052 181C     		mov	r0, r3
+ 397 0054 FFF7FEFF 		bl	Delay_mS
+ 131:../Sources/Control.c **** 	SetSpeed(-20,-20);
+ 398              		.loc 1 131 0
+ 399 0058 1423     		mov	r3, #20
+ 400 005a 5A42     		neg	r2, r3
+ 401 005c 1423     		mov	r3, #20
+ 402 005e 5B42     		neg	r3, r3
+ 403 0060 101C     		mov	r0, r2
+ 404 0062 191C     		mov	r1, r3
+ 405 0064 FFF7FEFF 		bl	SetSpeed
+ 132:../Sources/Control.c **** 	straight_speed = 0;
+ 406              		.loc 1 132 0
+ 407 0068 234B     		ldr	r3, .L25
+ 408 006a 0022     		mov	r2, #0
+ 409 006c 1A60     		str	r2, [r3]
+ 133:../Sources/Control.c **** 	medium_speed = 0;
+ 410              		.loc 1 133 0
+ 411 006e 234B     		ldr	r3, .L25+4
+ 412 0070 0022     		mov	r2, #0
+ 413 0072 1A60     		str	r2, [r3]
+ 134:../Sources/Control.c **** 	turn_speed = 0;
+ 414              		.loc 1 134 0
+ 415 0074 224B     		ldr	r3, .L25+8
+ 416 0076 0022     		mov	r2, #0
+ 417 0078 1A60     		str	r2, [r3]
+ 135:../Sources/Control.c **** 	brake_speed = 0;
+ 418              		.loc 1 135 0
+ 419 007a 224B     		ldr	r3, .L25+12
+ 420 007c 0022     		mov	r2, #0
+ 421 007e 1A60     		str	r2, [r3]
+ 136:../Sources/Control.c **** 	LED0_ON; LED1_OFF; LED2_ON; LED3_OFF;
+ 422              		.loc 1 136 0
+ 423 0080 214B     		ldr	r3, .L25+16
+ 424 0082 214A     		ldr	r2, .L25+16
+ 425 0084 5268     		ldr	r2, [r2, #4]
+ 426 0086 8021     		mov	r1, #128
+ 427 0088 4900     		lsl	r1, r1, #1
+ 428 008a 0A43     		orr	r2, r1
+ 429 008c 5A60     		str	r2, [r3, #4]
+ 430 008e 1E4B     		ldr	r3, .L25+16
+ 431 0090 1D4A     		ldr	r2, .L25+16
+ 432 0092 9268     		ldr	r2, [r2, #8]
+ 433 0094 8021     		mov	r1, #128
+ 434 0096 8900     		lsl	r1, r1, #2
+ 435 0098 0A43     		orr	r2, r1
+ 436 009a 9A60     		str	r2, [r3, #8]
+ 437 009c 1A4B     		ldr	r3, .L25+16
+ 438 009e 1A4A     		ldr	r2, .L25+16
+ 439 00a0 5268     		ldr	r2, [r2, #4]
+ 440 00a2 8021     		mov	r1, #128
+ 441 00a4 C900     		lsl	r1, r1, #3
+ 442 00a6 0A43     		orr	r2, r1
+ 443 00a8 5A60     		str	r2, [r3, #4]
+ 444 00aa 174B     		ldr	r3, .L25+16
+ 445 00ac 164A     		ldr	r2, .L25+16
+ 446 00ae 9268     		ldr	r2, [r2, #8]
+ 447 00b0 8021     		mov	r1, #128
+ 448 00b2 0901     		lsl	r1, r1, #4
+ 449 00b4 0A43     		orr	r2, r1
+ 450 00b6 9A60     		str	r2, [r3, #8]
+ 451              	.L24:
+ 137:../Sources/Control.c **** 	while(1)
+ 138:../Sources/Control.c **** 	{
+ 139:../Sources/Control.c **** 		LED0_TOG; LED1_TOG; LED2_TOG; LED3_TOG;
+ 452              		.loc 1 139 0
+ 453 00b8 134B     		ldr	r3, .L25+16
+ 454 00ba 134A     		ldr	r2, .L25+16
+ 455 00bc D268     		ldr	r2, [r2, #12]
+ 456 00be 8021     		mov	r1, #128
+ 457 00c0 4900     		lsl	r1, r1, #1
+ 458 00c2 0A43     		orr	r2, r1
+ 459 00c4 DA60     		str	r2, [r3, #12]
+ 460 00c6 104B     		ldr	r3, .L25+16
+ 461 00c8 0F4A     		ldr	r2, .L25+16
+ 462 00ca D268     		ldr	r2, [r2, #12]
+ 463 00cc 8021     		mov	r1, #128
+ 464 00ce 8900     		lsl	r1, r1, #2
+ 465 00d0 0A43     		orr	r2, r1
+ 466 00d2 DA60     		str	r2, [r3, #12]
+ 467 00d4 0C4B     		ldr	r3, .L25+16
+ 468 00d6 0C4A     		ldr	r2, .L25+16
+ 469 00d8 D268     		ldr	r2, [r2, #12]
+ 470 00da 8021     		mov	r1, #128
+ 471 00dc C900     		lsl	r1, r1, #3
+ 472 00de 0A43     		orr	r2, r1
+ 473 00e0 DA60     		str	r2, [r3, #12]
+ 474 00e2 094B     		ldr	r3, .L25+16
+ 475 00e4 084A     		ldr	r2, .L25+16
+ 476 00e6 D268     		ldr	r2, [r2, #12]
+ 477 00e8 8021     		mov	r1, #128
+ 478 00ea 0901     		lsl	r1, r1, #4
+ 479 00ec 0A43     		orr	r2, r1
+ 480 00ee DA60     		str	r2, [r3, #12]
+ 140:../Sources/Control.c **** 		Delay_mS(100);
+ 481              		.loc 1 140 0
+ 482 00f0 6420     		mov	r0, #100
+ 483 00f2 FFF7FEFF 		bl	Delay_mS
+ 141:../Sources/Control.c **** 	}
+ 484              		.loc 1 141 0
+ 485 00f6 DFE7     		b	.L24
+ 486              	.L26:
+ 487              		.align	2
+ 488              	.L25:
+ 489 00f8 00000000 		.word	straight_speed
+ 490 00fc 00000000 		.word	medium_speed
+ 491 0100 00000000 		.word	turn_speed
+ 492 0104 00000000 		.word	brake_speed
+ 493 0108 40F00F40 		.word	1074786368
+ 494              		.cfi_endproc
+ 495              	.LFE3:
+ 497              		.section	.text.InitializeControls,"ax",%progbits
+ 498              		.align	2
+ 499              		.global	InitializeControls
+ 500              		.code	16
+ 501              		.thumb_func
+ 503              	InitializeControls:
+ 504              	.LFB4:
+ 142:../Sources/Control.c **** }
+ 143:../Sources/Control.c **** 
+ 144:../Sources/Control.c **** /* Set speed values per version */
+ 145:../Sources/Control.c **** void InitializeControls(int version)
+ 146:../Sources/Control.c **** {
+ 505              		.loc 1 146 0
+ 506              		.cfi_startproc
+ 507 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 508              	.LCFI11:
+ 509              		.cfi_def_cfa_offset 20
+ 510              		.cfi_offset 4, -20
+ 511              		.cfi_offset 5, -16
+ 512              		.cfi_offset 6, -12
+ 513              		.cfi_offset 7, -8
+ 514              		.cfi_offset 14, -4
+ 515 0002 85B0     		sub	sp, sp, #20
+ 516              	.LCFI12:
+ 517              		.cfi_def_cfa_offset 40
+ 518 0004 02AF     		add	r7, sp, #8
+ 519              	.LCFI13:
+ 520              		.cfi_def_cfa 7, 32
+ 521 0006 7860     		str	r0, [r7, #4]
+ 147:../Sources/Control.c **** 	// Start different programs based on the on-board buttons
+ 148:../Sources/Control.c **** 	switch(version)
+ 522              		.loc 1 148 0
+ 523 0008 7B68     		ldr	r3, [r7, #4]
+ 524 000a 002B     		cmp	r3, #0
+ 525 000c 1BD1     		bne	.L31
+ 526              	.L29:
+ 149:../Sources/Control.c **** 	{
+ 150:../Sources/Control.c **** 	case 0:
+ 151:../Sources/Control.c **** 		brake_speed		= -45;
+ 527              		.loc 1 151 0
+ 528 000e 284B     		ldr	r3, .L32+40
+ 529 0010 2D22     		mov	r2, #45
+ 530 0012 5242     		neg	r2, r2
+ 531 0014 1A60     		str	r2, [r3]
+ 152:../Sources/Control.c **** 		turn_speed		= 51;
+ 532              		.loc 1 152 0
+ 533 0016 274B     		ldr	r3, .L32+44
+ 534 0018 3322     		mov	r2, #51
+ 535 001a 1A60     		str	r2, [r3]
+ 153:../Sources/Control.c **** 		medium_speed	= 55;
+ 536              		.loc 1 153 0
+ 537 001c 264B     		ldr	r3, .L32+48
+ 538 001e 3722     		mov	r2, #55
+ 539 0020 1A60     		str	r2, [r3]
+ 154:../Sources/Control.c **** 		straight_speed	= 70;
+ 540              		.loc 1 154 0
+ 541 0022 264B     		ldr	r3, .L32+52
+ 542 0024 4622     		mov	r2, #70
+ 543 0026 1A60     		str	r2, [r3]
+ 155:../Sources/Control.c **** 		TunePID(2.2, 0.9, 7.6);
+ 544              		.loc 1 155 0
+ 545 0028 184A     		ldr	r2, .L32+4
+ 546 002a 1749     		ldr	r1, .L32
+ 547 002c 184B     		ldr	r3, .L32+8
+ 548 002e 194C     		ldr	r4, .L32+12
+ 549 0030 194D     		ldr	r5, .L32+16
+ 550 0032 1A4E     		ldr	r6, .L32+20
+ 551 0034 0095     		str	r5, [sp]
+ 552 0036 0196     		str	r6, [sp, #4]
+ 553 0038 081C     		mov	r0, r1
+ 554 003a 111C     		mov	r1, r2
+ 555 003c 1A1C     		mov	r2, r3
+ 556 003e 231C     		mov	r3, r4
+ 557 0040 FFF7FEFF 		bl	TunePID
+ 156:../Sources/Control.c **** 		break;
+ 558              		.loc 1 156 0
+ 559 0044 1BE0     		b	.L27
+ 560              	.L31:
+ 157:../Sources/Control.c **** 	default:
+ 158:../Sources/Control.c **** 		brake_speed		= -48;
+ 561              		.loc 1 158 0
+ 562 0046 1A4B     		ldr	r3, .L32+40
+ 563 0048 3022     		mov	r2, #48
+ 564 004a 5242     		neg	r2, r2
+ 565 004c 1A60     		str	r2, [r3]
+ 159:../Sources/Control.c **** 		turn_speed		= 51;
+ 566              		.loc 1 159 0
+ 567 004e 194B     		ldr	r3, .L32+44
+ 568 0050 3322     		mov	r2, #51
+ 569 0052 1A60     		str	r2, [r3]
+ 160:../Sources/Control.c **** 		medium_speed	= 54;
+ 570              		.loc 1 160 0
+ 571 0054 184B     		ldr	r3, .L32+48
+ 572 0056 3622     		mov	r2, #54
+ 573 0058 1A60     		str	r2, [r3]
+ 161:../Sources/Control.c **** 		straight_speed	= 64;
+ 574              		.loc 1 161 0
+ 575 005a 184B     		ldr	r3, .L32+52
+ 576 005c 4022     		mov	r2, #64
+ 577 005e 1A60     		str	r2, [r3]
+ 162:../Sources/Control.c **** 		TunePID(2.2, 1.5, 7.5);
+ 578              		.loc 1 162 0
+ 579 0060 0A4A     		ldr	r2, .L32+4
+ 580 0062 0949     		ldr	r1, .L32
+ 581 0064 0E4B     		ldr	r3, .L32+24
+ 582 0066 0F4C     		ldr	r4, .L32+28
+ 583 0068 0F4D     		ldr	r5, .L32+32
+ 584 006a 104E     		ldr	r6, .L32+36
+ 585 006c 0095     		str	r5, [sp]
+ 586 006e 0196     		str	r6, [sp, #4]
+ 587 0070 081C     		mov	r0, r1
+ 588 0072 111C     		mov	r1, r2
+ 589 0074 1A1C     		mov	r2, r3
+ 590 0076 231C     		mov	r3, r4
+ 591 0078 FFF7FEFF 		bl	TunePID
+ 163:../Sources/Control.c **** 		break;
+ 592              		.loc 1 163 0
+ 593 007c C046     		mov	r8, r8
+ 594              	.L27:
+ 164:../Sources/Control.c **** 	}
+ 165:../Sources/Control.c **** }
+ 595              		.loc 1 165 0
+ 596 007e BD46     		mov	sp, r7
+ 597 0080 03B0     		add	sp, sp, #12
+ 598              		@ sp needed for prologue
+ 599 0082 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 600              	.L33:
+ 601 0084 C046C046 		.align	3
+ 602              	.L32:
+ 603 0088 9A999999 		.word	-1717986918
+ 604 008c 99990140 		.word	1073846681
+ 605 0090 CDCCCCCC 		.word	-858993459
+ 606 0094 CCCCEC3F 		.word	1072483532
+ 607 0098 66666666 		.word	1717986918
+ 608 009c 66661E40 		.word	1075734118
+ 609 00a0 00000000 		.word	0
+ 610 00a4 0000F83F 		.word	1073217536
+ 611 00a8 00000000 		.word	0
+ 612 00ac 00001E40 		.word	1075707904
+ 613 00b0 00000000 		.word	brake_speed
+ 614 00b4 00000000 		.word	turn_speed
+ 615 00b8 00000000 		.word	medium_speed
+ 616 00bc 00000000 		.word	straight_speed
+ 617              		.cfi_endproc
+ 618              	.LFE4:
+ 620              		.global	__aeabi_i2d
+ 621              		.global	__aeabi_dmul
+ 622              		.global	__aeabi_dadd
+ 623              		.global	__aeabi_d2iz
+ 624              		.section	.text.Run,"ax",%progbits
+ 625              		.align	2
+ 626              		.global	Run
+ 627              		.code	16
+ 628              		.thumb_func
+ 630              	Run:
+ 631              	.LFB5:
+ 166:../Sources/Control.c **** 
+ 167:../Sources/Control.c **** /*
+ 168:../Sources/Control.c ****  * Main control loop to run the track for the Freescale Cup
+ 169:../Sources/Control.c ****  */
+ 170:../Sources/Control.c **** void Run(int version)
+ 171:../Sources/Control.c **** {
+ 632              		.loc 1 171 0
+ 633              		.cfi_startproc
+ 634 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 635              	.LCFI14:
+ 636              		.cfi_def_cfa_offset 20
+ 637              		.cfi_offset 4, -20
+ 638              		.cfi_offset 5, -16
+ 639              		.cfi_offset 6, -12
+ 640              		.cfi_offset 7, -8
+ 641              		.cfi_offset 14, -4
+ 642 0002 8BB0     		sub	sp, sp, #44
+ 643              	.LCFI15:
+ 644              		.cfi_def_cfa_offset 64
+ 645 0004 00AF     		add	r7, sp, #0
+ 646              	.LCFI16:
+ 647              		.cfi_def_cfa_register 7
+ 648 0006 7860     		str	r0, [r7, #4]
+ 172:../Sources/Control.c **** 	// Speed variables
+ 173:../Sources/Control.c **** 	int speed = 0;
+ 649              		.loc 1 173 0
+ 650 0008 0023     		mov	r3, #0
+ 651 000a 7B61     		str	r3, [r7, #20]
+ 174:../Sources/Control.c **** 	int direction = 0;
+ 652              		.loc 1 174 0
+ 653 000c 0023     		mov	r3, #0
+ 654 000e 3B61     		str	r3, [r7, #16]
+ 175:../Sources/Control.c **** 	int i=1;
+ 655              		.loc 1 175 0
+ 656 0010 0123     		mov	r3, #1
+ 657 0012 7B62     		str	r3, [r7, #36]
+ 176:../Sources/Control.c **** 
+ 177:../Sources/Control.c **** 	int line_pos = 0;
+ 658              		.loc 1 177 0
+ 659 0014 0023     		mov	r3, #0
+ 660 0016 3B62     		str	r3, [r7, #32]
+ 178:../Sources/Control.c **** 	int last_line_pos = 0;
+ 661              		.loc 1 178 0
+ 662 0018 0023     		mov	r3, #0
+ 663 001a FB61     		str	r3, [r7, #28]
+ 179:../Sources/Control.c **** 	int lines = 0;
+ 664              		.loc 1 179 0
+ 665 001c 0023     		mov	r3, #0
+ 666 001e BB61     		str	r3, [r7, #24]
+ 180:../Sources/Control.c **** 	int diff;
+ 181:../Sources/Control.c **** 	
+ 182:../Sources/Control.c **** 	speedC = 0;
+ 667              		.loc 1 182 0
+ 668 0020 534B     		ldr	r3, .L48+16
+ 669 0022 0022     		mov	r2, #0
+ 670 0024 1A60     		str	r2, [r3]
+ 183:../Sources/Control.c **** 	
+ 184:../Sources/Control.c **** 	InitializeControls(version);
+ 671              		.loc 1 184 0
+ 672 0026 7B68     		ldr	r3, [r7, #4]
+ 673 0028 181C     		mov	r0, r3
+ 674 002a FFF7FEFF 		bl	InitializeControls
+ 185:../Sources/Control.c **** 
+ 186:../Sources/Control.c **** 	// Enable motors after they're stopped
+ 187:../Sources/Control.c **** 	SetMotors(0, 0);
+ 675              		.loc 1 187 0
+ 676 002e 0020     		mov	r0, #0
+ 677 0030 0021     		mov	r1, #0
+ 678 0032 FFF7FEFF 		bl	SetMotors
+ 188:../Sources/Control.c **** 
+ 189:../Sources/Control.c **** 	HBRIDGE_ENABLE;
+ 679              		.loc 1 189 0
+ 680 0036 4F4B     		ldr	r3, .L48+20
+ 681 0038 8022     		mov	r2, #128
+ 682 003a 9203     		lsl	r2, r2, #14
+ 683 003c 5A60     		str	r2, [r3, #4]
+ 190:../Sources/Control.c **** 
+ 191:../Sources/Control.c **** 	for(;;)
+ 192:../Sources/Control.c **** 	{
+ 193:../Sources/Control.c **** 		// Poll for new image (~10ms)
+ 194:../Sources/Control.c **** 		while(!LineScanImageReady);
+ 684              		.loc 1 194 0
+ 685 003e FFE7     		b	.L46
+ 686              	.L44:
+ 687              	.L46:
+ 688 0040 C046     		mov	r8, r8
+ 689              	.L35:
+ 690              		.loc 1 194 0 is_stmt 0
+ 691 0042 4D4B     		ldr	r3, .L48+24
+ 692 0044 1B78     		ldrb	r3, [r3]
+ 693 0046 DBB2     		uxtb	r3, r3
+ 694 0048 002B     		cmp	r3, #0
+ 695 004a FAD0     		beq	.L35
+ 195:../Sources/Control.c **** 
+ 196:../Sources/Control.c **** 		// Get Camera Index (-100 to 100)
+ 197:../Sources/Control.c **** 		//line_pos = GetLineIndexCenter();
+ 198:../Sources/Control.c **** 		line_pos = GetLineIndexEdge();
+ 696              		.loc 1 198 0 is_stmt 1
+ 697 004c FFF7FEFF 		bl	GetLineIndexEdge
+ 698 0050 031C     		mov	r3, r0
+ 699 0052 3B62     		str	r3, [r7, #32]
+ 199:../Sources/Control.c **** 
+ 200:../Sources/Control.c **** 		// If camera can't see the line (Line not found)
+ 201:../Sources/Control.c **** 		// continue on our path unless timed out
+ 202:../Sources/Control.c **** 		if(line_pos == LNF)
+ 700              		.loc 1 202 0
+ 701 0054 3B6A     		ldr	r3, [r7, #32]
+ 702 0056 972B     		cmp	r3, #151
+ 703 0058 02D1     		bne	.L36
+ 203:../Sources/Control.c **** 			line_pos = last_line_pos;
+ 704              		.loc 1 203 0
+ 705 005a FB69     		ldr	r3, [r7, #28]
+ 706 005c 3B62     		str	r3, [r7, #32]
+ 707 005e 09E0     		b	.L37
+ 708              	.L36:
+ 204:../Sources/Control.c **** 		else if(line_pos == FINISH)
+ 709              		.loc 1 204 0
+ 710 0060 3B6A     		ldr	r3, [r7, #32]
+ 711 0062 982B     		cmp	r3, #152
+ 712 0064 04D1     		bne	.L38
+ 205:../Sources/Control.c **** 		{
+ 206:../Sources/Control.c **** 			FinishLine();
+ 713              		.loc 1 206 0
+ 714 0066 FFF7FEFF 		bl	FinishLine
+ 207:../Sources/Control.c **** 			line_pos = 0;
+ 715              		.loc 1 207 0
+ 716 006a 0023     		mov	r3, #0
+ 717 006c 3B62     		str	r3, [r7, #32]
+ 718 006e 01E0     		b	.L37
+ 719              	.L38:
+ 208:../Sources/Control.c **** 		}
+ 209:../Sources/Control.c **** 		else
+ 210:../Sources/Control.c **** 			last_line_pos = line_pos;
+ 720              		.loc 1 210 0
+ 721 0070 3B6A     		ldr	r3, [r7, #32]
+ 722 0072 FB61     		str	r3, [r7, #28]
+ 723              	.L37:
+ 211:../Sources/Control.c **** 		
+ 212:../Sources/Control.c **** 		diff = last_line_pos - line_pos;
+ 724              		.loc 1 212 0
+ 725 0074 FA69     		ldr	r2, [r7, #28]
+ 726 0076 3B6A     		ldr	r3, [r7, #32]
+ 727 0078 D31A     		sub	r3, r2, r3
+ 728 007a FB60     		str	r3, [r7, #12]
+ 213:../Sources/Control.c **** 		if((diff > 30) | (diff < -30))
+ 729              		.loc 1 213 0
+ 730 007c 0123     		mov	r3, #1
+ 731 007e FA68     		ldr	r2, [r7, #12]
+ 732 0080 1E2A     		cmp	r2, #30
+ 733 0082 00DC     		bgt	.L39
+ 734 0084 0023     		mov	r3, #0
+ 735              	.L39:
+ 736 0086 DAB2     		uxtb	r2, r3
+ 737 0088 0123     		mov	r3, #1
+ 738 008a F968     		ldr	r1, [r7, #12]
+ 739 008c 081C     		mov	r0, r1
+ 740 008e 1E30     		add	r0, r0, #30
+ 741 0090 00DB     		blt	.L40
+ 742 0092 0023     		mov	r3, #0
+ 743              	.L40:
+ 744 0094 DBB2     		uxtb	r3, r3
+ 745 0096 1343     		orr	r3, r2
+ 746 0098 DBB2     		uxtb	r3, r3
+ 747 009a 002B     		cmp	r3, #0
+ 748 009c 01D0     		beq	.L41
+ 214:../Sources/Control.c **** 			line_pos = last_line_pos;
+ 749              		.loc 1 214 0
+ 750 009e FB69     		ldr	r3, [r7, #28]
+ 751 00a0 3B62     		str	r3, [r7, #32]
+ 752              	.L41:
+ 215:../Sources/Control.c **** 
+ 216:../Sources/Control.c **** 		i=1-i;
+ 753              		.loc 1 216 0
+ 754 00a2 7B6A     		ldr	r3, [r7, #36]
+ 755 00a4 0122     		mov	r2, #1
+ 756 00a6 D31A     		sub	r3, r2, r3
+ 757 00a8 7B62     		str	r3, [r7, #36]
+ 217:../Sources/Control.c **** 		if(i==0)
+ 758              		.loc 1 217 0
+ 759 00aa 7B6A     		ldr	r3, [r7, #36]
+ 760 00ac 002B     		cmp	r3, #0
+ 761 00ae 53D0     		beq	.L47
+ 762              	.L42:
+ 218:../Sources/Control.c **** 			continue;
+ 219:../Sources/Control.c **** 		
+ 220:../Sources/Control.c **** 		// Average both indices
+ 221:../Sources/Control.c **** 		lines = lines*0.2 + 0.4*line_pos + 0.4*last_line_pos;
+ 763              		.loc 1 221 0
+ 764 00b0 B869     		ldr	r0, [r7, #24]
+ 765 00b2 FFF7FEFF 		bl	__aeabi_i2d
+ 766 00b6 031C     		mov	r3, r0
+ 767 00b8 0C1C     		mov	r4, r1
+ 768 00ba 181C     		mov	r0, r3
+ 769 00bc 211C     		mov	r1, r4
+ 770 00be 294B     		ldr	r3, .L48+4
+ 771 00c0 274A     		ldr	r2, .L48
+ 772 00c2 FFF7FEFF 		bl	__aeabi_dmul
+ 773 00c6 031C     		mov	r3, r0
+ 774 00c8 0C1C     		mov	r4, r1
+ 775 00ca 1D1C     		mov	r5, r3
+ 776 00cc 261C     		mov	r6, r4
+ 777 00ce 386A     		ldr	r0, [r7, #32]
+ 778 00d0 FFF7FEFF 		bl	__aeabi_i2d
+ 779 00d4 031C     		mov	r3, r0
+ 780 00d6 0C1C     		mov	r4, r1
+ 781 00d8 181C     		mov	r0, r3
+ 782 00da 211C     		mov	r1, r4
+ 783 00dc 224A     		ldr	r2, .L48+8
+ 784 00de 234B     		ldr	r3, .L48+12
+ 785 00e0 FFF7FEFF 		bl	__aeabi_dmul
+ 786 00e4 031C     		mov	r3, r0
+ 787 00e6 0C1C     		mov	r4, r1
+ 788 00e8 281C     		mov	r0, r5
+ 789 00ea 311C     		mov	r1, r6
+ 790 00ec 1A1C     		mov	r2, r3
+ 791 00ee 231C     		mov	r3, r4
+ 792 00f0 FFF7FEFF 		bl	__aeabi_dadd
+ 793 00f4 031C     		mov	r3, r0
+ 794 00f6 0C1C     		mov	r4, r1
+ 795 00f8 1D1C     		mov	r5, r3
+ 796 00fa 261C     		mov	r6, r4
+ 797 00fc F869     		ldr	r0, [r7, #28]
+ 798 00fe FFF7FEFF 		bl	__aeabi_i2d
+ 799 0102 031C     		mov	r3, r0
+ 800 0104 0C1C     		mov	r4, r1
+ 801 0106 181C     		mov	r0, r3
+ 802 0108 211C     		mov	r1, r4
+ 803 010a 174A     		ldr	r2, .L48+8
+ 804 010c 174B     		ldr	r3, .L48+12
+ 805 010e FFF7FEFF 		bl	__aeabi_dmul
+ 806 0112 031C     		mov	r3, r0
+ 807 0114 0C1C     		mov	r4, r1
+ 808 0116 281C     		mov	r0, r5
+ 809 0118 311C     		mov	r1, r6
+ 810 011a 1A1C     		mov	r2, r3
+ 811 011c 231C     		mov	r3, r4
+ 812 011e FFF7FEFF 		bl	__aeabi_dadd
+ 813 0122 031C     		mov	r3, r0
+ 814 0124 0C1C     		mov	r4, r1
+ 815 0126 181C     		mov	r0, r3
+ 816 0128 211C     		mov	r1, r4
+ 817 012a FFF7FEFF 		bl	__aeabi_d2iz
+ 818 012e 031C     		mov	r3, r0
+ 819 0130 BB61     		str	r3, [r7, #24]
+ 222:../Sources/Control.c **** 		
+ 223:../Sources/Control.c **** 		// Calculate direction based on line position
+ 224:../Sources/Control.c **** 		direction = ComputeTurn(lines);
+ 820              		.loc 1 224 0
+ 821 0132 BB69     		ldr	r3, [r7, #24]
+ 822 0134 181C     		mov	r0, r3
+ 823 0136 FFF7FEFF 		bl	ComputeTurn
+ 824 013a 031C     		mov	r3, r0
+ 825 013c 3B61     		str	r3, [r7, #16]
+ 225:../Sources/Control.c **** 
+ 226:../Sources/Control.c **** 		// Calculate speed state based on direction
+ 227:../Sources/Control.c **** 		speed = ComputeSpeed(direction);
+ 826              		.loc 1 227 0
+ 827 013e 3B69     		ldr	r3, [r7, #16]
+ 828 0140 181C     		mov	r0, r3
+ 829 0142 FFF7FEFF 		bl	ComputeSpeed
+ 830 0146 031C     		mov	r3, r0
+ 831 0148 7B61     		str	r3, [r7, #20]
+ 228:../Sources/Control.c **** 		
+ 229:../Sources/Control.c **** 		// Update servo and motors
+ 230:../Sources/Control.c **** 		SetVelocity(direction, speed);
+ 832              		.loc 1 230 0
+ 833 014a 3A69     		ldr	r2, [r7, #16]
+ 834 014c 7B69     		ldr	r3, [r7, #20]
+ 835 014e 101C     		mov	r0, r2
+ 836 0150 191C     		mov	r1, r3
+ 837 0152 FFF7FEFF 		bl	SetVelocity
+ 231:../Sources/Control.c **** 	}
+ 838              		.loc 1 231 0
+ 839 0156 73E7     		b	.L44
+ 840              	.L47:
+ 218:../Sources/Control.c **** 			continue;
+ 841              		.loc 1 218 0
+ 842 0158 C046     		mov	r8, r8
+ 843              	.L45:
+ 844              		.loc 1 231 0
+ 845 015a 71E7     		b	.L44
+ 846              	.L49:
+ 847 015c C046C046 		.align	3
+ 848              	.L48:
+ 849 0160 9A999999 		.word	-1717986918
+ 850 0164 9999C93F 		.word	1070176665
+ 851 0168 9A999999 		.word	-1717986918
+ 852 016c 9999D93F 		.word	1071225241
+ 853 0170 00000000 		.word	speedC
+ 854 0174 00F10F40 		.word	1074786560
+ 855 0178 00000000 		.word	LineScanImageReady
+ 856              		.cfi_endproc
+ 857              	.LFE5:
+ 859 017c C046C046 		.text
+ 860              	.Letext0:
+ 861              		.file 2 "C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 862              		.file 3 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/MKL25Z4.h"
+ 863              		.file 4 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Control.h"
+ 864              		.file 5 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/LineScanCamera.h"
+ 865              		.file 6 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/PID.h"
+ 866              		.file 7 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Accel.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Control.c
+                            *COM*:00000004 straight_speed
+                            *COM*:00000004 medium_speed
+                            *COM*:00000004 turn_speed
+                            *COM*:00000004 brake_speed
+                            *COM*:00000004 speedC
+                            *COM*:000000c8 LineScanData
+                            *COM*:00001000 histogram
+                            *COM*:00000008 kp
+                            *COM*:00000008 ki
+                            *COM*:00000008 kd
+                            *COM*:00000008 lastError
+                            *COM*:00000008 llastError
+                            *COM*:00000004 lastOutput
+                            *COM*:00000006 AccData
+                            *COM*:00000002 Xout
+                            *COM*:00000002 Yout
+                            *COM*:00000002 Zout
+                            *COM*:00000001 Xoffset
+                            *COM*:00000001 Yoffset
+                            *COM*:00000001 Zoffset
+                            *COM*:00000004 ramp
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:39     .text.SetVelocity:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:44     .text.SetVelocity:00000000 SetVelocity
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:157    .text.SetSpeed:00000000 SetSpeed
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:145    .text.SetVelocity:00000080 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:152    .text.SetSpeed:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:189    .text.ComputeSpeed:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:194    .text.ComputeSpeed:00000000 ComputeSpeed
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:330    .text.ComputeSpeed:000000b0 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:339    .text.FinishLine:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:344    .text.FinishLine:00000000 FinishLine
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:489    .text.FinishLine:000000f8 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:498    .text.InitializeControls:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:503    .text.InitializeControls:00000000 InitializeControls
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:603    .text.InitializeControls:00000088 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:625    .text.Run:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:630    .text.Run:00000000 Run
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:849    .text.Run:00000160 $d
+                     .debug_frame:00000010 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc9LlfIQ.s:859    .text.Run:0000017c $t
+
+UNDEFINED SYMBOLS
+SetServo
+SetMotors
+Delay_mS
+TunePID
+__aeabi_i2d
+__aeabi_dmul
+__aeabi_dadd
+__aeabi_d2iz
+GetLineIndexEdge
+ComputeTurn
+LineScanImageReady

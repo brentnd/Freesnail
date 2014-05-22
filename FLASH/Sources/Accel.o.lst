@@ -1,0 +1,740 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Accel.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	straight_speed,4,4
+  18              		.comm	medium_speed,4,4
+  19              		.comm	turn_speed,4,4
+  20              		.comm	brake_speed,4,4
+  21              		.comm	speedC,4,4
+  22              		.comm	LineScanData,200,4
+  23              		.comm	histogram,4096,4
+  24              		.comm	kp,8,8
+  25              		.comm	ki,8,8
+  26              		.comm	kd,8,8
+  27              		.comm	lastError,8,8
+  28              		.comm	llastError,8,8
+  29              		.comm	lastOutput,4,4
+  30              		.comm	AccData,6,4
+  31              		.comm	Xout,2,2
+  32              		.comm	Yout,2,2
+  33              		.comm	Zout,2,2
+  34              		.comm	Xoffset,1,1
+  35              		.comm	Yoffset,1,1
+  36              		.comm	Zoffset,1,1
+  37              		.comm	ramp,4,4
+  38              		.section	.text.InitAccel,"ax",%progbits
+  39              		.align	2
+  40              		.global	InitAccel
+  41              		.code	16
+  42              		.thumb_func
+  44              	InitAccel:
+  45              	.LFB0:
+  46              		.file 1 "../Sources/Accel.c"
+   1:../Sources/Accel.c **** #include "Config.h"
+   2:../Sources/Accel.c **** 
+   3:../Sources/Accel.c **** /*
+   4:../Sources/Accel.c ****  * Initialize the onboard accelerometer
+   5:../Sources/Accel.c ****  */
+   6:../Sources/Accel.c **** void InitAccel()
+   7:../Sources/Accel.c **** {
+  47              		.loc 1 7 0
+  48              		.cfi_startproc
+  49 0000 80B5     		push	{r7, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 8
+  52              		.cfi_offset 7, -8
+  53              		.cfi_offset 14, -4
+  54 0002 00AF     		add	r7, sp, #0
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_register 7
+   8:../Sources/Accel.c **** 	Accel_port_init();
+  57              		.loc 1 8 0
+  58 0004 FFF7FEFF 		bl	Accel_port_init
+   9:../Sources/Accel.c ****   	Accel_reg_init();
+  59              		.loc 1 9 0
+  60 0008 FFF7FEFF 		bl	Accel_reg_init
+  10:../Sources/Accel.c ****   	Accel_calibrate();
+  61              		.loc 1 10 0
+  62 000c FFF7FEFF 		bl	Accel_calibrate
+  11:../Sources/Accel.c **** }
+  63              		.loc 1 11 0
+  64 0010 BD46     		mov	sp, r7
+  65              		@ sp needed for prologue
+  66 0012 80BD     		pop	{r7, pc}
+  67              		.cfi_endproc
+  68              	.LFE0:
+  70              		.section	.text.Accel_port_init,"ax",%progbits
+  71              		.align	2
+  72              		.global	Accel_port_init
+  73              		.code	16
+  74              		.thumb_func
+  76              	Accel_port_init:
+  77              	.LFB1:
+  12:../Sources/Accel.c **** 
+  13:../Sources/Accel.c **** /******************************************************************************
+  14:../Sources/Accel.c **** * MCU initialization function
+  15:../Sources/Accel.c **** ******************************************************************************/ 
+  16:../Sources/Accel.c **** void Accel_port_init(void)
+  17:../Sources/Accel.c **** {
+  78              		.loc 1 17 0
+  79              		.cfi_startproc
+  80 0000 80B5     		push	{r7, lr}
+  81              	.LCFI2:
+  82              		.cfi_def_cfa_offset 8
+  83              		.cfi_offset 7, -8
+  84              		.cfi_offset 14, -4
+  85 0002 00AF     		add	r7, sp, #0
+  86              	.LCFI3:
+  87              		.cfi_def_cfa_register 7
+  18:../Sources/Accel.c **** 	//I2C0 module initialization
+  19:../Sources/Accel.c **** 	SIM_SCGC4 |= SIM_SCGC4_I2C0_MASK;		// Turn on clock to I2C0 module 
+  88              		.loc 1 19 0
+  89 0004 204A     		ldr	r2, .L3
+  90 0006 2049     		ldr	r1, .L3
+  91 0008 204B     		ldr	r3, .L3+4
+  92 000a CB58     		ldr	r3, [r1, r3]
+  93 000c 4021     		mov	r1, #64
+  94 000e 1943     		orr	r1, r3
+  95 0010 1E4B     		ldr	r3, .L3+4
+  96 0012 D150     		str	r1, [r2, r3]
+  20:../Sources/Accel.c **** 	SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;		// Turn on clock to Port E module 
+  97              		.loc 1 20 0
+  98 0014 1C4A     		ldr	r2, .L3
+  99 0016 1C49     		ldr	r1, .L3
+ 100 0018 1D4B     		ldr	r3, .L3+8
+ 101 001a CB58     		ldr	r3, [r1, r3]
+ 102 001c 8021     		mov	r1, #128
+ 103 001e 8901     		lsl	r1, r1, #6
+ 104 0020 1943     		orr	r1, r3
+ 105 0022 1B4B     		ldr	r3, .L3+8
+ 106 0024 D150     		str	r1, [r2, r3]
+  21:../Sources/Accel.c **** 	PORTE_PCR24 = PORT_PCR_MUX(5);			// PTE24 pin is I2C0 SCL line 
+ 107              		.loc 1 21 0
+ 108 0026 1B4B     		ldr	r3, .L3+12
+ 109 0028 A022     		mov	r2, #160
+ 110 002a D200     		lsl	r2, r2, #3
+ 111 002c 1A66     		str	r2, [r3, #96]
+  22:../Sources/Accel.c **** 	PORTE_PCR25 = PORT_PCR_MUX(5);			// PTE25 pin is I2C0 SDA line 
+ 112              		.loc 1 22 0
+ 113 002e 194B     		ldr	r3, .L3+12
+ 114 0030 A022     		mov	r2, #160
+ 115 0032 D200     		lsl	r2, r2, #3
+ 116 0034 5A66     		str	r2, [r3, #100]
+  23:../Sources/Accel.c **** 	I2C0_F  = 0x14; 						// SDA hold time = 2.125us, SCL start hold time = 4.25us, SCL stop hold time
+ 117              		.loc 1 23 0
+ 118 0036 184B     		ldr	r3, .L3+16
+ 119 0038 1422     		mov	r2, #20
+ 120 003a 5A70     		strb	r2, [r3, #1]
+  24:../Sources/Accel.c **** 	I2C0_C1 = I2C_C1_IICEN_MASK;    		// Enable I2C0 module 
+ 121              		.loc 1 24 0
+ 122 003c 164B     		ldr	r3, .L3+16
+ 123 003e 8022     		mov	r2, #128
+ 124 0040 9A70     		strb	r2, [r3, #2]
+  25:../Sources/Accel.c **** 	
+  26:../Sources/Accel.c **** 	//Configure the PTA14 pin (connected to the INT1 of the MMA8451Q) for falling edge interrupts
+  27:../Sources/Accel.c **** 	SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;		// Turn on clock to Port A module 
+ 125              		.loc 1 27 0
+ 126 0042 114A     		ldr	r2, .L3
+ 127 0044 1049     		ldr	r1, .L3
+ 128 0046 124B     		ldr	r3, .L3+8
+ 129 0048 CB58     		ldr	r3, [r1, r3]
+ 130 004a 8021     		mov	r1, #128
+ 131 004c 8900     		lsl	r1, r1, #2
+ 132 004e 1943     		orr	r1, r3
+ 133 0050 0F4B     		ldr	r3, .L3+8
+ 134 0052 D150     		str	r1, [r2, r3]
+  28:../Sources/Accel.c **** 	PORTA_PCR14 |= (0|PORT_PCR_ISF_MASK|	// Clear the interrupt flag 
+ 135              		.loc 1 28 0
+ 136 0054 114B     		ldr	r3, .L3+20
+ 137 0056 114A     		ldr	r2, .L3+20
+ 138 0058 926B     		ldr	r2, [r2, #56]
+ 139 005a 1149     		ldr	r1, .L3+24
+ 140 005c 0A43     		orr	r2, r1
+ 141 005e 9A63     		str	r2, [r3, #56]
+  29:../Sources/Accel.c **** 					  PORT_PCR_MUX(0x1)|	// PTA14 is configured as GPIO 
+  30:../Sources/Accel.c **** 					  PORT_PCR_IRQC(0xA));	// PTA14 is configured for falling edge interrupts 
+  31:../Sources/Accel.c **** 	
+  32:../Sources/Accel.c **** 	//Enable PORTA interrupt on NVIC
+  33:../Sources/Accel.c **** 	NVIC_ICPR |= 1 << ((INT_PORTA - 16)%32);
+ 142              		.loc 1 33 0
+ 143 0060 104A     		ldr	r2, .L3+28
+ 144 0062 1049     		ldr	r1, .L3+28
+ 145 0064 C023     		mov	r3, #192
+ 146 0066 5B00     		lsl	r3, r3, #1
+ 147 0068 CB58     		ldr	r3, [r1, r3]
+ 148 006a 8021     		mov	r1, #128
+ 149 006c C905     		lsl	r1, r1, #23
+ 150 006e 1943     		orr	r1, r3
+ 151 0070 C023     		mov	r3, #192
+ 152 0072 5B00     		lsl	r3, r3, #1
+ 153 0074 D150     		str	r1, [r2, r3]
+  34:../Sources/Accel.c **** 	NVIC_ISER |= 1 << ((INT_PORTA - 16)%32);
+ 154              		.loc 1 34 0
+ 155 0076 0B4B     		ldr	r3, .L3+28
+ 156 0078 0A4A     		ldr	r2, .L3+28
+ 157 007a 1268     		ldr	r2, [r2]
+ 158 007c 8021     		mov	r1, #128
+ 159 007e C905     		lsl	r1, r1, #23
+ 160 0080 0A43     		orr	r2, r1
+ 161 0082 1A60     		str	r2, [r3]
+  35:../Sources/Accel.c **** }
+ 162              		.loc 1 35 0
+ 163 0084 BD46     		mov	sp, r7
+ 164              		@ sp needed for prologue
+ 165 0086 80BD     		pop	{r7, pc}
+ 166              	.L4:
+ 167              		.align	2
+ 168              	.L3:
+ 169 0088 00700440 		.word	1074032640
+ 170 008c 34100000 		.word	4148
+ 171 0090 38100000 		.word	4152
+ 172 0094 00D00440 		.word	1074057216
+ 173 0098 00600640 		.word	1074159616
+ 174 009c 00900440 		.word	1074040832
+ 175 00a0 00010A01 		.word	17432832
+ 176 00a4 00E100E0 		.word	-536813312
+ 177              		.cfi_endproc
+ 178              	.LFE1:
+ 180              		.section	.text.Accel_reg_init,"ax",%progbits
+ 181              		.align	2
+ 182              		.global	Accel_reg_init
+ 183              		.code	16
+ 184              		.thumb_func
+ 186              	Accel_reg_init:
+ 187              	.LFB2:
+  36:../Sources/Accel.c **** 
+  37:../Sources/Accel.c **** /******************************************************************************
+  38:../Sources/Accel.c **** * Accelerometer initialization function
+  39:../Sources/Accel.c **** ******************************************************************************/ 
+  40:../Sources/Accel.c **** void Accel_reg_init(void)
+  41:../Sources/Accel.c **** {
+ 188              		.loc 1 41 0
+ 189              		.cfi_startproc
+ 190 0000 80B5     		push	{r7, lr}
+ 191              	.LCFI4:
+ 192              		.cfi_def_cfa_offset 8
+ 193              		.cfi_offset 7, -8
+ 194              		.cfi_offset 14, -4
+ 195 0002 82B0     		sub	sp, sp, #8
+ 196              	.LCFI5:
+ 197              		.cfi_def_cfa_offset 16
+ 198 0004 00AF     		add	r7, sp, #0
+ 199              	.LCFI6:
+ 200              		.cfi_def_cfa_register 7
+  42:../Sources/Accel.c **** 	unsigned char reg_val = 0;
+ 201              		.loc 1 42 0
+ 202 0006 FB1D     		add	r3, r7, #7
+ 203 0008 0022     		mov	r2, #0
+ 204 000a 1A70     		strb	r2, [r3]
+  43:../Sources/Accel.c **** 	
+  44:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG2, 0x40);		// Reset all registers to POR values
+ 205              		.loc 1 44 0
+ 206 000c 1D20     		mov	r0, #29
+ 207 000e 2B21     		mov	r1, #43
+ 208 0010 4022     		mov	r2, #64
+ 209 0012 FFF7FEFF 		bl	I2C_WriteRegister
+ 210              	.L6:
+  45:../Sources/Accel.c **** 	
+  46:../Sources/Accel.c **** 	do		// Wait for the RST bit to clear 
+  47:../Sources/Accel.c **** 	{
+  48:../Sources/Accel.c **** 		reg_val = I2C_ReadRegister(MMA845x_I2C_ADDRESS, CTRL_REG2) & 0x40; 
+ 211              		.loc 1 48 0
+ 212 0016 1D20     		mov	r0, #29
+ 213 0018 2B21     		mov	r1, #43
+ 214 001a FFF7FEFF 		bl	I2C_ReadRegister
+ 215 001e 031C     		mov	r3, r0
+ 216 0020 191C     		mov	r1, r3
+ 217 0022 FB1D     		add	r3, r7, #7
+ 218 0024 4022     		mov	r2, #64
+ 219 0026 0A40     		and	r2, r1
+ 220 0028 1A70     		strb	r2, [r3]
+  49:../Sources/Accel.c **** 	} 	while (reg_val);
+ 221              		.loc 1 49 0
+ 222 002a FB1D     		add	r3, r7, #7
+ 223 002c 1B78     		ldrb	r3, [r3]
+ 224 002e 002B     		cmp	r3, #0
+ 225 0030 F1D1     		bne	.L6
+  50:../Sources/Accel.c **** 	
+  51:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, XYZ_DATA_CFG_REG, 0x00);		// +/-2g range -> 1g = 16384/4 = 
+ 226              		.loc 1 51 0
+ 227 0032 1D20     		mov	r0, #29
+ 228 0034 0E21     		mov	r1, #14
+ 229 0036 0022     		mov	r2, #0
+ 230 0038 FFF7FEFF 		bl	I2C_WriteRegister
+  52:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG2, 0x02);		// High Resolution mode
+ 231              		.loc 1 52 0
+ 232 003c 1D20     		mov	r0, #29
+ 233 003e 2B21     		mov	r1, #43
+ 234 0040 0222     		mov	r2, #2
+ 235 0042 FFF7FEFF 		bl	I2C_WriteRegister
+  53:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG1, 0x3D);	// ODR = 1.56Hz, Reduced noise, Active mo
+ 236              		.loc 1 53 0
+ 237 0046 1D20     		mov	r0, #29
+ 238 0048 2A21     		mov	r1, #42
+ 239 004a 3D22     		mov	r2, #61
+ 240 004c FFF7FEFF 		bl	I2C_WriteRegister
+  54:../Sources/Accel.c **** }
+ 241              		.loc 1 54 0
+ 242 0050 BD46     		mov	sp, r7
+ 243 0052 02B0     		add	sp, sp, #8
+ 244              		@ sp needed for prologue
+ 245 0054 80BD     		pop	{r7, pc}
+ 246              		.cfi_endproc
+ 247              	.LFE2:
+ 249 0056 C046     		.section	.text.Accel_calibrate,"ax",%progbits
+ 250              		.align	2
+ 251              		.global	Accel_calibrate
+ 252              		.code	16
+ 253              		.thumb_func
+ 255              	Accel_calibrate:
+ 256              	.LFB3:
+  55:../Sources/Accel.c **** 
+  56:../Sources/Accel.c **** /******************************************************************************
+  57:../Sources/Accel.c **** * Simple offset calibration
+  58:../Sources/Accel.c **** ******************************************************************************/ 
+  59:../Sources/Accel.c **** void Accel_calibrate(void)
+  60:../Sources/Accel.c **** {
+ 257              		.loc 1 60 0
+ 258              		.cfi_startproc
+ 259 0000 80B5     		push	{r7, lr}
+ 260              	.LCFI7:
+ 261              		.cfi_def_cfa_offset 8
+ 262              		.cfi_offset 7, -8
+ 263              		.cfi_offset 14, -4
+ 264 0002 82B0     		sub	sp, sp, #8
+ 265              	.LCFI8:
+ 266              		.cfi_def_cfa_offset 16
+ 267 0004 00AF     		add	r7, sp, #0
+ 268              	.LCFI9:
+ 269              		.cfi_def_cfa_register 7
+  61:../Sources/Accel.c **** 	unsigned char reg_val = 0;
+ 270              		.loc 1 61 0
+ 271 0006 FB1D     		add	r3, r7, #7
+ 272 0008 0022     		mov	r2, #0
+ 273 000a 1A70     		strb	r2, [r3]
+  62:../Sources/Accel.c **** 	
+  63:../Sources/Accel.c **** 	while (!reg_val)		// Wait for a first set of data		 
+ 274              		.loc 1 63 0
+ 275 000c 09E0     		b	.L8
+ 276              	.L9:
+  64:../Sources/Accel.c **** 	{
+  65:../Sources/Accel.c **** 		reg_val = I2C_ReadRegister(MMA845x_I2C_ADDRESS, STATUS_REG) & 0x08; 
+ 277              		.loc 1 65 0
+ 278 000e 1D20     		mov	r0, #29
+ 279 0010 0021     		mov	r1, #0
+ 280 0012 FFF7FEFF 		bl	I2C_ReadRegister
+ 281 0016 031C     		mov	r3, r0
+ 282 0018 191C     		mov	r1, r3
+ 283 001a FB1D     		add	r3, r7, #7
+ 284 001c 0822     		mov	r2, #8
+ 285 001e 0A40     		and	r2, r1
+ 286 0020 1A70     		strb	r2, [r3]
+ 287              	.L8:
+  63:../Sources/Accel.c **** 	while (!reg_val)		// Wait for a first set of data		 
+ 288              		.loc 1 63 0
+ 289 0022 FB1D     		add	r3, r7, #7
+ 290 0024 1B78     		ldrb	r3, [r3]
+ 291 0026 002B     		cmp	r3, #0
+ 292 0028 F1D0     		beq	.L9
+  66:../Sources/Accel.c **** 	} 	
+  67:../Sources/Accel.c **** 	  	
+  68:../Sources/Accel.c **** 	I2C_ReadMultiRegisters(MMA845x_I2C_ADDRESS, OUT_X_MSB_REG, 6, AccData);		// Read data output regis
+ 293              		.loc 1 68 0
+ 294 002a 434B     		ldr	r3, .L13
+ 295 002c 1D20     		mov	r0, #29
+ 296 002e 0121     		mov	r1, #1
+ 297 0030 0622     		mov	r2, #6
+ 298 0032 FFF7FEFF 		bl	I2C_ReadMultiRegisters
+  69:../Sources/Accel.c **** 	  						
+  70:../Sources/Accel.c **** 	Xout = ((short) (AccData[0]<<8 | AccData[1])) >> 2;		// Compute 14-bit X-axis output value
+ 299              		.loc 1 70 0
+ 300 0036 404B     		ldr	r3, .L13
+ 301 0038 1B78     		ldrb	r3, [r3]
+ 302 003a 1B02     		lsl	r3, r3, #8
+ 303 003c 9AB2     		uxth	r2, r3
+ 304 003e 3E4B     		ldr	r3, .L13
+ 305 0040 5B78     		ldrb	r3, [r3, #1]
+ 306 0042 1343     		orr	r3, r2
+ 307 0044 9BB2     		uxth	r3, r3
+ 308 0046 1BB2     		sxth	r3, r3
+ 309 0048 9B10     		asr	r3, r3, #2
+ 310 004a 9AB2     		uxth	r2, r3
+ 311 004c 3B4B     		ldr	r3, .L13+4
+ 312 004e 1A80     		strh	r2, [r3]
+  71:../Sources/Accel.c **** 	Yout = ((short) (AccData[2]<<8 | AccData[3])) >> 2;		// Compute 14-bit Y-axis output value
+ 313              		.loc 1 71 0
+ 314 0050 394B     		ldr	r3, .L13
+ 315 0052 9B78     		ldrb	r3, [r3, #2]
+ 316 0054 1B02     		lsl	r3, r3, #8
+ 317 0056 9AB2     		uxth	r2, r3
+ 318 0058 374B     		ldr	r3, .L13
+ 319 005a DB78     		ldrb	r3, [r3, #3]
+ 320 005c 1343     		orr	r3, r2
+ 321 005e 9BB2     		uxth	r3, r3
+ 322 0060 1BB2     		sxth	r3, r3
+ 323 0062 9B10     		asr	r3, r3, #2
+ 324 0064 9AB2     		uxth	r2, r3
+ 325 0066 364B     		ldr	r3, .L13+8
+ 326 0068 1A80     		strh	r2, [r3]
+  72:../Sources/Accel.c **** 	Zout = ((short) (AccData[4]<<8 | AccData[5])) >> 2;		// Compute 14-bit Z-axis output value
+ 327              		.loc 1 72 0
+ 328 006a 334B     		ldr	r3, .L13
+ 329 006c 1B79     		ldrb	r3, [r3, #4]
+ 330 006e 1B02     		lsl	r3, r3, #8
+ 331 0070 9AB2     		uxth	r2, r3
+ 332 0072 314B     		ldr	r3, .L13
+ 333 0074 5B79     		ldrb	r3, [r3, #5]
+ 334 0076 1343     		orr	r3, r2
+ 335 0078 9BB2     		uxth	r3, r3
+ 336 007a 1BB2     		sxth	r3, r3
+ 337 007c 9B10     		asr	r3, r3, #2
+ 338 007e 9AB2     		uxth	r2, r3
+ 339 0080 304B     		ldr	r3, .L13+12
+ 340 0082 1A80     		strh	r2, [r3]
+  73:../Sources/Accel.c **** 	  					
+  74:../Sources/Accel.c **** 	Xoffset = Xout / 8 * (-1);		// Compute X-axis offset correction value
+ 341              		.loc 1 74 0
+ 342 0084 2D4B     		ldr	r3, .L13+4
+ 343 0086 1B88     		ldrh	r3, [r3]
+ 344 0088 1BB2     		sxth	r3, r3
+ 345 008a 002B     		cmp	r3, #0
+ 346 008c 00DA     		bge	.L10
+ 347 008e 0733     		add	r3, r3, #7
+ 348              	.L10:
+ 349 0090 DB10     		asr	r3, r3, #3
+ 350 0092 9BB2     		uxth	r3, r3
+ 351 0094 DBB2     		uxtb	r3, r3
+ 352 0096 5B42     		neg	r3, r3
+ 353 0098 DAB2     		uxtb	r2, r3
+ 354 009a 2B4B     		ldr	r3, .L13+16
+ 355 009c 1A70     		strb	r2, [r3]
+  75:../Sources/Accel.c **** 	Yoffset = Yout / 8 * (-1);		// Compute Y-axis offset correction value
+ 356              		.loc 1 75 0
+ 357 009e 284B     		ldr	r3, .L13+8
+ 358 00a0 1B88     		ldrh	r3, [r3]
+ 359 00a2 1BB2     		sxth	r3, r3
+ 360 00a4 002B     		cmp	r3, #0
+ 361 00a6 00DA     		bge	.L11
+ 362 00a8 0733     		add	r3, r3, #7
+ 363              	.L11:
+ 364 00aa DB10     		asr	r3, r3, #3
+ 365 00ac 9BB2     		uxth	r3, r3
+ 366 00ae DBB2     		uxtb	r3, r3
+ 367 00b0 5B42     		neg	r3, r3
+ 368 00b2 DAB2     		uxtb	r2, r3
+ 369 00b4 254B     		ldr	r3, .L13+20
+ 370 00b6 1A70     		strb	r2, [r3]
+  76:../Sources/Accel.c **** 	Zoffset = (Zout - SENSITIVITY_2G) / 8 * (-1);		// Compute Z-axis offset correction value
+ 371              		.loc 1 76 0
+ 372 00b8 224B     		ldr	r3, .L13+12
+ 373 00ba 1B88     		ldrh	r3, [r3]
+ 374 00bc 1BB2     		sxth	r3, r3
+ 375 00be 244A     		ldr	r2, .L13+24
+ 376 00c0 9B18     		add	r3, r3, r2
+ 377 00c2 002B     		cmp	r3, #0
+ 378 00c4 00DA     		bge	.L12
+ 379 00c6 0733     		add	r3, r3, #7
+ 380              	.L12:
+ 381 00c8 DB10     		asr	r3, r3, #3
+ 382 00ca DBB2     		uxtb	r3, r3
+ 383 00cc 5B42     		neg	r3, r3
+ 384 00ce DAB2     		uxtb	r2, r3
+ 385 00d0 204B     		ldr	r3, .L13+28
+ 386 00d2 1A70     		strb	r2, [r3]
+  77:../Sources/Accel.c **** 	  					
+  78:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG1, 0x00);		// Standby mode to allow writing to the 
+ 387              		.loc 1 78 0
+ 388 00d4 1D20     		mov	r0, #29
+ 389 00d6 2A21     		mov	r1, #42
+ 390 00d8 0022     		mov	r2, #0
+ 391 00da FFF7FEFF 		bl	I2C_WriteRegister
+  79:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, OFF_X_REG, Xoffset);		
+ 392              		.loc 1 79 0
+ 393 00de 1A4B     		ldr	r3, .L13+16
+ 394 00e0 1B78     		ldrb	r3, [r3]
+ 395 00e2 1D20     		mov	r0, #29
+ 396 00e4 2F21     		mov	r1, #47
+ 397 00e6 1A1C     		mov	r2, r3
+ 398 00e8 FFF7FEFF 		bl	I2C_WriteRegister
+  80:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, OFF_Y_REG, Yoffset);	
+ 399              		.loc 1 80 0
+ 400 00ec 174B     		ldr	r3, .L13+20
+ 401 00ee 1B78     		ldrb	r3, [r3]
+ 402 00f0 1D20     		mov	r0, #29
+ 403 00f2 3021     		mov	r1, #48
+ 404 00f4 1A1C     		mov	r2, r3
+ 405 00f6 FFF7FEFF 		bl	I2C_WriteRegister
+  81:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, OFF_Z_REG, Zoffset);	
+ 406              		.loc 1 81 0
+ 407 00fa 164B     		ldr	r3, .L13+28
+ 408 00fc 1B78     		ldrb	r3, [r3]
+ 409 00fe 1D20     		mov	r0, #29
+ 410 0100 3121     		mov	r1, #49
+ 411 0102 1A1C     		mov	r2, r3
+ 412 0104 FFF7FEFF 		bl	I2C_WriteRegister
+  82:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG3, 0x00);		// Push-pull, active low interrupt 
+ 413              		.loc 1 82 0
+ 414 0108 1D20     		mov	r0, #29
+ 415 010a 2C21     		mov	r1, #44
+ 416 010c 0022     		mov	r2, #0
+ 417 010e FFF7FEFF 		bl	I2C_WriteRegister
+  83:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG4, 0x01);		// Enable DRDY interrupt 
+ 418              		.loc 1 83 0
+ 419 0112 1D20     		mov	r0, #29
+ 420 0114 2D21     		mov	r1, #45
+ 421 0116 0122     		mov	r2, #1
+ 422 0118 FFF7FEFF 		bl	I2C_WriteRegister
+  84:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG5, 0x01);		// DRDY interrupt routed to INT1 - PTA14
+ 423              		.loc 1 84 0
+ 424 011c 1D20     		mov	r0, #29
+ 425 011e 2E21     		mov	r1, #46
+ 426 0120 0122     		mov	r2, #1
+ 427 0122 FFF7FEFF 		bl	I2C_WriteRegister
+  85:../Sources/Accel.c **** 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG1, 0x3D);		// ODR = 1.56Hz, Reduced noise, Active m
+ 428              		.loc 1 85 0
+ 429 0126 1D20     		mov	r0, #29
+ 430 0128 2A21     		mov	r1, #42
+ 431 012a 3D22     		mov	r2, #61
+ 432 012c FFF7FEFF 		bl	I2C_WriteRegister
+  86:../Sources/Accel.c **** }
+ 433              		.loc 1 86 0
+ 434 0130 BD46     		mov	sp, r7
+ 435 0132 02B0     		add	sp, sp, #8
+ 436              		@ sp needed for prologue
+ 437 0134 80BD     		pop	{r7, pc}
+ 438              	.L14:
+ 439 0136 C046     		.align	2
+ 440              	.L13:
+ 441 0138 00000000 		.word	AccData
+ 442 013c 00000000 		.word	Xout
+ 443 0140 00000000 		.word	Yout
+ 444 0144 00000000 		.word	Zout
+ 445 0148 00000000 		.word	Xoffset
+ 446 014c 00000000 		.word	Yoffset
+ 447 0150 00F0FFFF 		.word	-4096
+ 448 0154 00000000 		.word	Zoffset
+ 449              		.cfi_endproc
+ 450              	.LFE3:
+ 452              		.section	.text.PORTA_IRQHandler,"ax",%progbits
+ 453              		.align	2
+ 454              		.global	PORTA_IRQHandler
+ 455              		.code	16
+ 456              		.thumb_func
+ 458              	PORTA_IRQHandler:
+ 459              	.LFB4:
+  87:../Sources/Accel.c **** 
+  88:../Sources/Accel.c **** /******************************************************************************
+  89:../Sources/Accel.c **** * PORT A Interrupt handler
+  90:../Sources/Accel.c **** ******************************************************************************/ 
+  91:../Sources/Accel.c **** void PORTA_IRQHandler()
+  92:../Sources/Accel.c **** {
+ 460              		.loc 1 92 0
+ 461              		.cfi_startproc
+ 462 0000 80B5     		push	{r7, lr}
+ 463              	.LCFI10:
+ 464              		.cfi_def_cfa_offset 8
+ 465              		.cfi_offset 7, -8
+ 466              		.cfi_offset 14, -4
+ 467 0002 00AF     		add	r7, sp, #0
+ 468              	.LCFI11:
+ 469              		.cfi_def_cfa_register 7
+  93:../Sources/Accel.c **** 	// Clear the interrupt flag
+  94:../Sources/Accel.c **** 	PORTA_PCR14 |= PORT_PCR_ISF_MASK;
+ 470              		.loc 1 94 0
+ 471 0004 294B     		ldr	r3, .L18
+ 472 0006 294A     		ldr	r2, .L18
+ 473 0008 926B     		ldr	r2, [r2, #56]
+ 474 000a 8021     		mov	r1, #128
+ 475 000c 4904     		lsl	r1, r1, #17
+ 476 000e 0A43     		orr	r2, r1
+ 477 0010 9A63     		str	r2, [r3, #56]
+  95:../Sources/Accel.c **** 
+  96:../Sources/Accel.c **** 	// Read data output registers 0x01-0x06
+  97:../Sources/Accel.c **** 	I2C_ReadMultiRegisters(MMA845x_I2C_ADDRESS, OUT_X_MSB_REG, 6, AccData);
+ 478              		.loc 1 97 0
+ 479 0012 274B     		ldr	r3, .L18+4
+ 480 0014 1D20     		mov	r0, #29
+ 481 0016 0121     		mov	r1, #1
+ 482 0018 0622     		mov	r2, #6
+ 483 001a FFF7FEFF 		bl	I2C_ReadMultiRegisters
+  98:../Sources/Accel.c **** 	
+  99:../Sources/Accel.c **** 	// Compute 14-bit X, Y, and Z output values
+ 100:../Sources/Accel.c **** 	Xout = ((short) (AccData[0]<<8 | AccData[1])) >> 2;
+ 484              		.loc 1 100 0
+ 485 001e 244B     		ldr	r3, .L18+4
+ 486 0020 1B78     		ldrb	r3, [r3]
+ 487 0022 1B02     		lsl	r3, r3, #8
+ 488 0024 9AB2     		uxth	r2, r3
+ 489 0026 224B     		ldr	r3, .L18+4
+ 490 0028 5B78     		ldrb	r3, [r3, #1]
+ 491 002a 1343     		orr	r3, r2
+ 492 002c 9BB2     		uxth	r3, r3
+ 493 002e 1BB2     		sxth	r3, r3
+ 494 0030 9B10     		asr	r3, r3, #2
+ 495 0032 9AB2     		uxth	r2, r3
+ 496 0034 1F4B     		ldr	r3, .L18+8
+ 497 0036 1A80     		strh	r2, [r3]
+ 101:../Sources/Accel.c **** 	Yout = ((short) (AccData[2]<<8 | AccData[3])) >> 2;
+ 498              		.loc 1 101 0
+ 499 0038 1D4B     		ldr	r3, .L18+4
+ 500 003a 9B78     		ldrb	r3, [r3, #2]
+ 501 003c 1B02     		lsl	r3, r3, #8
+ 502 003e 9AB2     		uxth	r2, r3
+ 503 0040 1B4B     		ldr	r3, .L18+4
+ 504 0042 DB78     		ldrb	r3, [r3, #3]
+ 505 0044 1343     		orr	r3, r2
+ 506 0046 9BB2     		uxth	r3, r3
+ 507 0048 1BB2     		sxth	r3, r3
+ 508 004a 9B10     		asr	r3, r3, #2
+ 509 004c 9AB2     		uxth	r2, r3
+ 510 004e 1A4B     		ldr	r3, .L18+12
+ 511 0050 1A80     		strh	r2, [r3]
+ 102:../Sources/Accel.c **** 	Zout = ((short) (AccData[4]<<8 | AccData[5])) >> 2;
+ 512              		.loc 1 102 0
+ 513 0052 174B     		ldr	r3, .L18+4
+ 514 0054 1B79     		ldrb	r3, [r3, #4]
+ 515 0056 1B02     		lsl	r3, r3, #8
+ 516 0058 9AB2     		uxth	r2, r3
+ 517 005a 154B     		ldr	r3, .L18+4
+ 518 005c 5B79     		ldrb	r3, [r3, #5]
+ 519 005e 1343     		orr	r3, r2
+ 520 0060 9BB2     		uxth	r3, r3
+ 521 0062 1BB2     		sxth	r3, r3
+ 522 0064 9B10     		asr	r3, r3, #2
+ 523 0066 9AB2     		uxth	r2, r3
+ 524 0068 144B     		ldr	r3, .L18+16
+ 525 006a 1A80     		strh	r2, [r3]
+ 103:../Sources/Accel.c **** 
+ 104:../Sources/Accel.c **** 	ramp = 0;
+ 526              		.loc 1 104 0
+ 527 006c 144B     		ldr	r3, .L18+20
+ 528 006e 0022     		mov	r2, #0
+ 529 0070 1A60     		str	r2, [r3]
+ 105:../Sources/Accel.c **** 	if(Zout < 3950)
+ 530              		.loc 1 105 0
+ 531 0072 124B     		ldr	r3, .L18+16
+ 532 0074 1B88     		ldrh	r3, [r3]
+ 533 0076 1AB2     		sxth	r2, r3
+ 534 0078 124B     		ldr	r3, .L18+24
+ 535 007a 9A42     		cmp	r2, r3
+ 536 007c 14DC     		bgt	.L15
+ 106:../Sources/Accel.c **** 	{
+ 107:../Sources/Accel.c **** 		// Down ramp
+ 108:../Sources/Accel.c **** 		if(Xout < -1000)
+ 537              		.loc 1 108 0
+ 538 007e 0D4B     		ldr	r3, .L18+8
+ 539 0080 1B88     		ldrh	r3, [r3]
+ 540 0082 1AB2     		sxth	r2, r3
+ 541 0084 104B     		ldr	r3, .L18+28
+ 542 0086 9A42     		cmp	r2, r3
+ 543 0088 04DA     		bge	.L17
+ 109:../Sources/Accel.c **** 		{
+ 110:../Sources/Accel.c **** 			ramp = -1;
+ 544              		.loc 1 110 0
+ 545 008a 0D4B     		ldr	r3, .L18+20
+ 546 008c 0122     		mov	r2, #1
+ 547 008e 5242     		neg	r2, r2
+ 548 0090 1A60     		str	r2, [r3]
+ 549 0092 09E0     		b	.L15
+ 550              	.L17:
+ 111:../Sources/Accel.c **** 		}
+ 112:../Sources/Accel.c **** 		// Up ramp
+ 113:../Sources/Accel.c **** 		else if(Xout > 1000)
+ 551              		.loc 1 113 0
+ 552 0094 074B     		ldr	r3, .L18+8
+ 553 0096 1B88     		ldrh	r3, [r3]
+ 554 0098 1AB2     		sxth	r2, r3
+ 555 009a FA23     		mov	r3, #250
+ 556 009c 9B00     		lsl	r3, r3, #2
+ 557 009e 9A42     		cmp	r2, r3
+ 558 00a0 02DD     		ble	.L15
+ 114:../Sources/Accel.c **** 		{
+ 115:../Sources/Accel.c **** 			ramp = 1;
+ 559              		.loc 1 115 0
+ 560 00a2 074B     		ldr	r3, .L18+20
+ 561 00a4 0122     		mov	r2, #1
+ 562 00a6 1A60     		str	r2, [r3]
+ 563              	.L15:
+ 116:../Sources/Accel.c **** 		}
+ 117:../Sources/Accel.c **** 	}
+ 118:../Sources/Accel.c **** }
+ 564              		.loc 1 118 0
+ 565 00a8 BD46     		mov	sp, r7
+ 566              		@ sp needed for prologue
+ 567 00aa 80BD     		pop	{r7, pc}
+ 568              	.L19:
+ 569              		.align	2
+ 570              	.L18:
+ 571 00ac 00900440 		.word	1074040832
+ 572 00b0 00000000 		.word	AccData
+ 573 00b4 00000000 		.word	Xout
+ 574 00b8 00000000 		.word	Yout
+ 575 00bc 00000000 		.word	Zout
+ 576 00c0 00000000 		.word	ramp
+ 577 00c4 6D0F0000 		.word	3949
+ 578 00c8 18FCFFFF 		.word	-1000
+ 579              		.cfi_endproc
+ 580              	.LFE4:
+ 582              		.text
+ 583              	.Letext0:
+ 584              		.file 2 "C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 585              		.file 3 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/MKL25Z4.h"
+ 586              		.file 4 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Control.h"
+ 587              		.file 5 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/LineScanCamera.h"
+ 588              		.file 6 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/PID.h"
+ 589              		.file 7 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Accel.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Accel.c
+                            *COM*:00000004 straight_speed
+                            *COM*:00000004 medium_speed
+                            *COM*:00000004 turn_speed
+                            *COM*:00000004 brake_speed
+                            *COM*:00000004 speedC
+                            *COM*:000000c8 LineScanData
+                            *COM*:00001000 histogram
+                            *COM*:00000008 kp
+                            *COM*:00000008 ki
+                            *COM*:00000008 kd
+                            *COM*:00000008 lastError
+                            *COM*:00000008 llastError
+                            *COM*:00000004 lastOutput
+                            *COM*:00000006 AccData
+                            *COM*:00000002 Xout
+                            *COM*:00000002 Yout
+                            *COM*:00000002 Zout
+                            *COM*:00000001 Xoffset
+                            *COM*:00000001 Yoffset
+                            *COM*:00000001 Zoffset
+                            *COM*:00000004 ramp
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:39     .text.InitAccel:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:44     .text.InitAccel:00000000 InitAccel
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:76     .text.Accel_port_init:00000000 Accel_port_init
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:186    .text.Accel_reg_init:00000000 Accel_reg_init
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:255    .text.Accel_calibrate:00000000 Accel_calibrate
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:71     .text.Accel_port_init:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:169    .text.Accel_port_init:00000088 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:181    .text.Accel_reg_init:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:250    .text.Accel_calibrate:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:441    .text.Accel_calibrate:00000138 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:453    .text.PORTA_IRQHandler:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:458    .text.PORTA_IRQHandler:00000000 PORTA_IRQHandler
+C:\Users\BRENTD~1\AppData\Local\Temp\ccTKUbDO.s:571    .text.PORTA_IRQHandler:000000ac $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+I2C_WriteRegister
+I2C_ReadRegister
+I2C_ReadMultiRegisters

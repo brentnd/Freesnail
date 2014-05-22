@@ -1,0 +1,533 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	straight_speed,4,4
+  18              		.comm	medium_speed,4,4
+  19              		.comm	turn_speed,4,4
+  20              		.comm	brake_speed,4,4
+  21              		.comm	speedC,4,4
+  22              		.comm	LineScanData,200,4
+  23              		.comm	histogram,4096,4
+  24              		.comm	kp,8,8
+  25              		.comm	ki,8,8
+  26              		.comm	kd,8,8
+  27              		.comm	lastError,8,8
+  28              		.comm	llastError,8,8
+  29              		.comm	lastOutput,4,4
+  30              		.comm	AccData,6,4
+  31              		.comm	Xout,2,2
+  32              		.comm	Yout,2,2
+  33              		.comm	Zout,2,2
+  34              		.comm	Xoffset,1,1
+  35              		.comm	Yoffset,1,1
+  36              		.comm	Zoffset,1,1
+  37              		.comm	ramp,4,4
+  38              		.section	.text.main,"ax",%progbits
+  39              		.align	2
+  40              		.global	main
+  41              		.code	16
+  42              		.thumb_func
+  44              	main:
+  45              	.LFB0:
+  46              		.file 1 "../Sources/main.c"
+   1:../Sources/main.c **** #include "Config.h"
+   2:../Sources/main.c **** 
+   3:../Sources/main.c **** #define RUN
+   4:../Sources/main.c **** 
+   5:../Sources/main.c **** int main(void)
+   6:../Sources/main.c **** {
+  47              		.loc 1 6 0
+  48              		.cfi_startproc
+  49 0000 90B5     		push	{r4, r7, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 12
+  52              		.cfi_offset 4, -12
+  53              		.cfi_offset 7, -8
+  54              		.cfi_offset 14, -4
+  55 0002 83B0     		sub	sp, sp, #12
+  56              	.LCFI1:
+  57              		.cfi_def_cfa_offset 24
+  58 0004 00AF     		add	r7, sp, #0
+  59              	.LCFI2:
+  60              		.cfi_def_cfa_register 7
+   7:../Sources/main.c **** #ifdef TESTING
+   8:../Sources/main.c **** 	int i,line_pos;
+   9:../Sources/main.c **** 	// Initialize all components
+  10:../Sources/main.c **** 	Initialize();
+  11:../Sources/main.c **** 	
+  12:../Sources/main.c **** 	InitUARTs();
+  13:../Sources/main.c **** 	// Present main menu
+  14:../Sources/main.c **** 	
+  15:../Sources/main.c **** 	for(;;)
+  16:../Sources/main.c **** 	{
+  17:../Sources/main.c **** 		while(!LineScanImageReady);
+  18:../Sources/main.c **** 		
+  19:../Sources/main.c **** 		// Get Camera Index (-100 to 100)
+  20:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  21:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  22:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  23:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  24:../Sources/main.c **** 		
+  25:../Sources/main.c **** 		// Copy from image to data for modification
+  26:../Sources/main.c **** 		for(i=14; i<114; i++)
+  27:../Sources/main.c **** 			LineScanData[i-14] += LineScanImage[i];
+  28:../Sources/main.c **** 		
+  29:../Sources/main.c **** 		// Median filter on raw data
+  30:../Sources/main.c **** 		//medianFilter();
+  31:../Sources/main.c **** 		
+  32:../Sources/main.c **** 		//stretchFilter();
+  33:../Sources/main.c **** 		
+  34:../Sources/main.c **** 		for(i=0;i<99;i++)
+  35:../Sources/main.c **** 		{
+  36:../Sources/main.c **** 			uint8_t t = (uint8_t)((LineScanData[i])/17+2);
+  37:../Sources/main.c **** 			uart_putchar(t);
+  38:../Sources/main.c **** 		}
+  39:../Sources/main.c **** 		
+  40:../Sources/main.c **** 		line_pos = 100;//GetLineIndexEdge();
+  41:../Sources/main.c **** 		LineScanImageReady = FALSE;
+  42:../Sources/main.c **** 		uart_putchar((uint8_t)(line_pos+100));
+  43:../Sources/main.c **** 		
+  44:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  45:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  46:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  47:../Sources/main.c **** 		uart_putchar((uint8_t)0);
+  48:../Sources/main.c **** 	}
+  49:../Sources/main.c **** #endif
+  50:../Sources/main.c **** 	
+  51:../Sources/main.c **** #ifdef ACCEL
+  52:../Sources/main.c **** 	// Initialize all components
+  53:../Sources/main.c **** 	Initialize();
+  54:../Sources/main.c **** 	InitUARTs();
+  55:../Sources/main.c **** 	io_printf("Accelerometer data\n");
+  56:../Sources/main.c **** 	while(1)
+  57:../Sources/main.c **** 	{
+  58:../Sources/main.c **** 		LED0_OFF; LED1_OFF; LED2_OFF; LED3_OFF;
+  59:../Sources/main.c **** 		if(Zout < 3950)
+  60:../Sources/main.c **** 		{
+  61:../Sources/main.c **** 			if(Xout < -1000)
+  62:../Sources/main.c **** 				LED3_ON;
+  63:../Sources/main.c **** 			else if(Xout > 1000)
+  64:../Sources/main.c **** 				LED0_ON;
+  65:../Sources/main.c **** 		}
+  66:../Sources/main.c **** 		else
+  67:../Sources/main.c **** 		{
+  68:../Sources/main.c **** 			LED1_ON; LED2_ON;
+  69:../Sources/main.c **** 		}
+  70:../Sources/main.c **** 		io_printf("X: %d Y: %d Z: %d\n",Xout,Yout,Zout);
+  71:../Sources/main.c **** 	}
+  72:../Sources/main.c **** #endif
+  73:../Sources/main.c **** 	
+  74:../Sources/main.c **** #ifdef SERVO
+  75:../Sources/main.c **** 	Initialize();
+  76:../Sources/main.c **** 	while(1)
+  77:../Sources/main.c **** 	{
+  78:../Sources/main.c **** 		SetServo(100);
+  79:../Sources/main.c **** 		Delay_mS(1000);
+  80:../Sources/main.c **** 		SetServo(0);
+  81:../Sources/main.c **** 		Delay_mS(1000);
+  82:../Sources/main.c **** 		SetServo(-100);
+  83:../Sources/main.c **** 		Delay_mS(1000);
+  84:../Sources/main.c **** 		SetServo(0);
+  85:../Sources/main.c **** 		Delay_mS(1000);
+  86:../Sources/main.c **** 	}
+  87:../Sources/main.c **** 	
+  88:../Sources/main.c **** #endif
+  89:../Sources/main.c **** 	
+  90:../Sources/main.c **** #ifdef RUN
+  91:../Sources/main.c **** 	int version = 0;
+  61              		.loc 1 91 0
+  62 0006 0023     		mov	r3, #0
+  63 0008 7B60     		str	r3, [r7, #4]
+  92:../Sources/main.c **** 	int state = 0;
+  64              		.loc 1 92 0
+  65 000a 0023     		mov	r3, #0
+  66 000c 3B60     		str	r3, [r7]
+  93:../Sources/main.c **** 	
+  94:../Sources/main.c **** 	// Initialize all components
+  95:../Sources/main.c **** 	Initialize();
+  67              		.loc 1 95 0
+  68 000e FFF7FEFF 		bl	Initialize
+  96:../Sources/main.c **** #ifdef DEBUG
+  97:../Sources/main.c **** 	InitUARTs();
+  98:../Sources/main.c **** 	io_printf("Running data\n");
+  99:../Sources/main.c **** #endif
+ 100:../Sources/main.c **** 	
+ 101:../Sources/main.c **** 	// Start on version 1
+ 102:../Sources/main.c **** 	LED0_ON; LED1_OFF; LED2_OFF; LED3_OFF;
+  69              		.loc 1 102 0
+  70 0012 764B     		ldr	r3, .L7
+  71 0014 754A     		ldr	r2, .L7
+  72 0016 5268     		ldr	r2, [r2, #4]
+  73 0018 8021     		mov	r1, #128
+  74 001a 4900     		lsl	r1, r1, #1
+  75 001c 0A43     		orr	r2, r1
+  76 001e 5A60     		str	r2, [r3, #4]
+  77 0020 724B     		ldr	r3, .L7
+  78 0022 724A     		ldr	r2, .L7
+  79 0024 9268     		ldr	r2, [r2, #8]
+  80 0026 8021     		mov	r1, #128
+  81 0028 8900     		lsl	r1, r1, #2
+  82 002a 0A43     		orr	r2, r1
+  83 002c 9A60     		str	r2, [r3, #8]
+  84 002e 6F4B     		ldr	r3, .L7
+  85 0030 6E4A     		ldr	r2, .L7
+  86 0032 9268     		ldr	r2, [r2, #8]
+  87 0034 8021     		mov	r1, #128
+  88 0036 C900     		lsl	r1, r1, #3
+  89 0038 0A43     		orr	r2, r1
+  90 003a 9A60     		str	r2, [r3, #8]
+  91 003c 6B4B     		ldr	r3, .L7
+  92 003e 6B4A     		ldr	r2, .L7
+  93 0040 9268     		ldr	r2, [r2, #8]
+  94 0042 8021     		mov	r1, #128
+  95 0044 0901     		lsl	r1, r1, #4
+  96 0046 0A43     		orr	r2, r1
+  97 0048 9A60     		str	r2, [r3, #8]
+ 103:../Sources/main.c **** 	
+ 104:../Sources/main.c **** 	while(!BUTTON_A_PRESSED)
+  98              		.loc 1 104 0
+  99 004a 35E0     		b	.L2
+ 100              	.L5:
+ 105:../Sources/main.c **** 	{
+ 106:../Sources/main.c **** 		if(state & BUTTON_B_PRESSED)
+ 101              		.loc 1 106 0
+ 102 004c 684B     		ldr	r3, .L7+4
+ 103 004e 1A69     		ldr	r2, [r3, #16]
+ 104 0050 8023     		mov	r3, #128
+ 105 0052 9B02     		lsl	r3, r3, #10
+ 106 0054 1340     		and	r3, r2
+ 107 0056 5A1E     		sub	r2, r3, #1
+ 108 0058 9341     		sbc	r3, r3, r2
+ 109 005a DBB2     		uxtb	r3, r3
+ 110 005c 3A68     		ldr	r2, [r7]
+ 111 005e 1340     		and	r3, r2
+ 112 0060 22D0     		beq	.L3
+ 107:../Sources/main.c **** 		{
+ 108:../Sources/main.c **** 			//Old off
+ 109:../Sources/main.c **** 			GPIOB_PCOR |= ((uint32_t)(1<<(8+version)));
+ 113              		.loc 1 109 0
+ 114 0062 624B     		ldr	r3, .L7
+ 115 0064 614A     		ldr	r2, .L7
+ 116 0066 9168     		ldr	r1, [r2, #8]
+ 117 0068 7A68     		ldr	r2, [r7, #4]
+ 118 006a 0832     		add	r2, r2, #8
+ 119 006c 0120     		mov	r0, #1
+ 120 006e 041C     		mov	r4, r0
+ 121 0070 9440     		lsl	r4, r4, r2
+ 122 0072 221C     		mov	r2, r4
+ 123 0074 0A43     		orr	r2, r1
+ 124 0076 9A60     		str	r2, [r3, #8]
+ 110:../Sources/main.c **** 			//Increment version (0 to 3)
+ 111:../Sources/main.c **** 			version = (version + 1) % 4;
+ 125              		.loc 1 111 0
+ 126 0078 7B68     		ldr	r3, [r7, #4]
+ 127 007a 5A1C     		add	r2, r3, #1
+ 128 007c 5D4B     		ldr	r3, .L7+8
+ 129 007e 1340     		and	r3, r2
+ 130 0080 04D5     		bpl	.L4
+ 131 0082 013B     		sub	r3, r3, #1
+ 132 0084 0422     		mov	r2, #4
+ 133 0086 5242     		neg	r2, r2
+ 134 0088 1343     		orr	r3, r2
+ 135 008a 0133     		add	r3, r3, #1
+ 136              	.L4:
+ 137 008c 7B60     		str	r3, [r7, #4]
+ 112:../Sources/main.c **** 			//New on
+ 113:../Sources/main.c **** 			GPIOB_PSOR |= ((uint32_t)(1<<(8+version)));
+ 138              		.loc 1 113 0
+ 139 008e 574B     		ldr	r3, .L7
+ 140 0090 564A     		ldr	r2, .L7
+ 141 0092 5168     		ldr	r1, [r2, #4]
+ 142 0094 7A68     		ldr	r2, [r7, #4]
+ 143 0096 0832     		add	r2, r2, #8
+ 144 0098 0120     		mov	r0, #1
+ 145 009a 041C     		mov	r4, r0
+ 146 009c 9440     		lsl	r4, r4, r2
+ 147 009e 221C     		mov	r2, r4
+ 148 00a0 0A43     		orr	r2, r1
+ 149 00a2 5A60     		str	r2, [r3, #4]
+ 114:../Sources/main.c **** 			state = 0;
+ 150              		.loc 1 114 0
+ 151 00a4 0023     		mov	r3, #0
+ 152 00a6 3B60     		str	r3, [r7]
+ 153              	.L3:
+ 115:../Sources/main.c **** 		}
+ 116:../Sources/main.c **** 		if(!BUTTON_B_PRESSED)
+ 154              		.loc 1 116 0
+ 155 00a8 514B     		ldr	r3, .L7+4
+ 156 00aa 1A69     		ldr	r2, [r3, #16]
+ 157 00ac 8023     		mov	r3, #128
+ 158 00ae 9B02     		lsl	r3, r3, #10
+ 159 00b0 1340     		and	r3, r2
+ 160 00b2 01D1     		bne	.L2
+ 117:../Sources/main.c **** 			state = 1;
+ 161              		.loc 1 117 0
+ 162 00b4 0123     		mov	r3, #1
+ 163 00b6 3B60     		str	r3, [r7]
+ 164              	.L2:
+ 104:../Sources/main.c **** 	while(!BUTTON_A_PRESSED)
+ 165              		.loc 1 104 0
+ 166 00b8 4D4B     		ldr	r3, .L7+4
+ 167 00ba 1A69     		ldr	r2, [r3, #16]
+ 168 00bc 8023     		mov	r3, #128
+ 169 00be 9B01     		lsl	r3, r3, #6
+ 170 00c0 1340     		and	r3, r2
+ 171 00c2 C3D0     		beq	.L5
+ 118:../Sources/main.c **** 	}
+ 119:../Sources/main.c **** 	// Count down to start
+ 120:../Sources/main.c **** 	LED1_ON; LED2_ON; LED3_ON; LED0_OFF;
+ 172              		.loc 1 120 0
+ 173 00c4 494B     		ldr	r3, .L7
+ 174 00c6 494A     		ldr	r2, .L7
+ 175 00c8 5268     		ldr	r2, [r2, #4]
+ 176 00ca 8021     		mov	r1, #128
+ 177 00cc 8900     		lsl	r1, r1, #2
+ 178 00ce 0A43     		orr	r2, r1
+ 179 00d0 5A60     		str	r2, [r3, #4]
+ 180 00d2 464B     		ldr	r3, .L7
+ 181 00d4 454A     		ldr	r2, .L7
+ 182 00d6 5268     		ldr	r2, [r2, #4]
+ 183 00d8 8021     		mov	r1, #128
+ 184 00da C900     		lsl	r1, r1, #3
+ 185 00dc 0A43     		orr	r2, r1
+ 186 00de 5A60     		str	r2, [r3, #4]
+ 187 00e0 424B     		ldr	r3, .L7
+ 188 00e2 424A     		ldr	r2, .L7
+ 189 00e4 5268     		ldr	r2, [r2, #4]
+ 190 00e6 8021     		mov	r1, #128
+ 191 00e8 0901     		lsl	r1, r1, #4
+ 192 00ea 0A43     		orr	r2, r1
+ 193 00ec 5A60     		str	r2, [r3, #4]
+ 194 00ee 3F4B     		ldr	r3, .L7
+ 195 00f0 3E4A     		ldr	r2, .L7
+ 196 00f2 9268     		ldr	r2, [r2, #8]
+ 197 00f4 8021     		mov	r1, #128
+ 198 00f6 4900     		lsl	r1, r1, #1
+ 199 00f8 0A43     		orr	r2, r1
+ 200 00fa 9A60     		str	r2, [r3, #8]
+ 121:../Sources/main.c **** 	// 3
+ 122:../Sources/main.c **** 	Delay_mS(240);
+ 201              		.loc 1 122 0
+ 202 00fc F020     		mov	r0, #240
+ 203 00fe FFF7FEFF 		bl	Delay_mS
+ 123:../Sources/main.c **** 	SetServo(-50);
+ 204              		.loc 1 123 0
+ 205 0102 3223     		mov	r3, #50
+ 206 0104 5B42     		neg	r3, r3
+ 207 0106 181C     		mov	r0, r3
+ 208 0108 FFF7FEFF 		bl	SetServo
+ 124:../Sources/main.c **** 	Delay_mS(240);
+ 209              		.loc 1 124 0
+ 210 010c F020     		mov	r0, #240
+ 211 010e FFF7FEFF 		bl	Delay_mS
+ 125:../Sources/main.c **** 	SetServo(50);
+ 212              		.loc 1 125 0
+ 213 0112 3220     		mov	r0, #50
+ 214 0114 FFF7FEFF 		bl	SetServo
+ 126:../Sources/main.c **** 	Delay_mS(240);
+ 215              		.loc 1 126 0
+ 216 0118 F020     		mov	r0, #240
+ 217 011a FFF7FEFF 		bl	Delay_mS
+ 127:../Sources/main.c **** 	SetServo(-50);
+ 218              		.loc 1 127 0
+ 219 011e 3223     		mov	r3, #50
+ 220 0120 5B42     		neg	r3, r3
+ 221 0122 181C     		mov	r0, r3
+ 222 0124 FFF7FEFF 		bl	SetServo
+ 128:../Sources/main.c **** 	Delay_mS(240);
+ 223              		.loc 1 128 0
+ 224 0128 F020     		mov	r0, #240
+ 225 012a FFF7FEFF 		bl	Delay_mS
+ 129:../Sources/main.c **** 	SetServo(50);
+ 226              		.loc 1 129 0
+ 227 012e 3220     		mov	r0, #50
+ 228 0130 FFF7FEFF 		bl	SetServo
+ 130:../Sources/main.c **** 	LED1_OFF;
+ 229              		.loc 1 130 0
+ 230 0134 2D4B     		ldr	r3, .L7
+ 231 0136 2D4A     		ldr	r2, .L7
+ 232 0138 9268     		ldr	r2, [r2, #8]
+ 233 013a 8021     		mov	r1, #128
+ 234 013c 8900     		lsl	r1, r1, #2
+ 235 013e 0A43     		orr	r2, r1
+ 236 0140 9A60     		str	r2, [r3, #8]
+ 131:../Sources/main.c **** 	// 2
+ 132:../Sources/main.c **** 	Delay_mS(240);
+ 237              		.loc 1 132 0
+ 238 0142 F020     		mov	r0, #240
+ 239 0144 FFF7FEFF 		bl	Delay_mS
+ 133:../Sources/main.c **** 	SetServo(-50);
+ 240              		.loc 1 133 0
+ 241 0148 3223     		mov	r3, #50
+ 242 014a 5B42     		neg	r3, r3
+ 243 014c 181C     		mov	r0, r3
+ 244 014e FFF7FEFF 		bl	SetServo
+ 134:../Sources/main.c **** 	Delay_mS(240);
+ 245              		.loc 1 134 0
+ 246 0152 F020     		mov	r0, #240
+ 247 0154 FFF7FEFF 		bl	Delay_mS
+ 135:../Sources/main.c **** 	SetServo(50);
+ 248              		.loc 1 135 0
+ 249 0158 3220     		mov	r0, #50
+ 250 015a FFF7FEFF 		bl	SetServo
+ 136:../Sources/main.c **** 	Delay_mS(240);
+ 251              		.loc 1 136 0
+ 252 015e F020     		mov	r0, #240
+ 253 0160 FFF7FEFF 		bl	Delay_mS
+ 137:../Sources/main.c **** 	SetServo(-50);
+ 254              		.loc 1 137 0
+ 255 0164 3223     		mov	r3, #50
+ 256 0166 5B42     		neg	r3, r3
+ 257 0168 181C     		mov	r0, r3
+ 258 016a FFF7FEFF 		bl	SetServo
+ 138:../Sources/main.c **** 	Delay_mS(240);
+ 259              		.loc 1 138 0
+ 260 016e F020     		mov	r0, #240
+ 261 0170 FFF7FEFF 		bl	Delay_mS
+ 139:../Sources/main.c **** 	SetServo(50);
+ 262              		.loc 1 139 0
+ 263 0174 3220     		mov	r0, #50
+ 264 0176 FFF7FEFF 		bl	SetServo
+ 140:../Sources/main.c **** 	LED2_OFF;
+ 265              		.loc 1 140 0
+ 266 017a 1C4B     		ldr	r3, .L7
+ 267 017c 1B4A     		ldr	r2, .L7
+ 268 017e 9268     		ldr	r2, [r2, #8]
+ 269 0180 8021     		mov	r1, #128
+ 270 0182 C900     		lsl	r1, r1, #3
+ 271 0184 0A43     		orr	r2, r1
+ 272 0186 9A60     		str	r2, [r3, #8]
+ 141:../Sources/main.c **** 	// 1
+ 142:../Sources/main.c **** 	Delay_mS(240);
+ 273              		.loc 1 142 0
+ 274 0188 F020     		mov	r0, #240
+ 275 018a FFF7FEFF 		bl	Delay_mS
+ 143:../Sources/main.c **** 	SetServo(-50);
+ 276              		.loc 1 143 0
+ 277 018e 3223     		mov	r3, #50
+ 278 0190 5B42     		neg	r3, r3
+ 279 0192 181C     		mov	r0, r3
+ 280 0194 FFF7FEFF 		bl	SetServo
+ 144:../Sources/main.c **** 	Delay_mS(240);
+ 281              		.loc 1 144 0
+ 282 0198 F020     		mov	r0, #240
+ 283 019a FFF7FEFF 		bl	Delay_mS
+ 145:../Sources/main.c **** 	SetServo(50);
+ 284              		.loc 1 145 0
+ 285 019e 3220     		mov	r0, #50
+ 286 01a0 FFF7FEFF 		bl	SetServo
+ 146:../Sources/main.c **** 	Delay_mS(240);
+ 287              		.loc 1 146 0
+ 288 01a4 F020     		mov	r0, #240
+ 289 01a6 FFF7FEFF 		bl	Delay_mS
+ 147:../Sources/main.c **** 	SetServo(-50);
+ 290              		.loc 1 147 0
+ 291 01aa 3223     		mov	r3, #50
+ 292 01ac 5B42     		neg	r3, r3
+ 293 01ae 181C     		mov	r0, r3
+ 294 01b0 FFF7FEFF 		bl	SetServo
+ 148:../Sources/main.c **** 	Delay_mS(240);
+ 295              		.loc 1 148 0
+ 296 01b4 F020     		mov	r0, #240
+ 297 01b6 FFF7FEFF 		bl	Delay_mS
+ 149:../Sources/main.c **** 	SetServo(50);
+ 298              		.loc 1 149 0
+ 299 01ba 3220     		mov	r0, #50
+ 300 01bc FFF7FEFF 		bl	SetServo
+ 150:../Sources/main.c **** 	LED3_OFF;
+ 301              		.loc 1 150 0
+ 302 01c0 0A4B     		ldr	r3, .L7
+ 303 01c2 0A4A     		ldr	r2, .L7
+ 304 01c4 9268     		ldr	r2, [r2, #8]
+ 305 01c6 8021     		mov	r1, #128
+ 306 01c8 0901     		lsl	r1, r1, #4
+ 307 01ca 0A43     		orr	r2, r1
+ 308 01cc 9A60     		str	r2, [r3, #8]
+ 151:../Sources/main.c **** 	SetServo(0);
+ 309              		.loc 1 151 0
+ 310 01ce 0020     		mov	r0, #0
+ 311 01d0 FFF7FEFF 		bl	SetServo
+ 152:../Sources/main.c **** 	Delay_mS(100);
+ 312              		.loc 1 152 0
+ 313 01d4 6420     		mov	r0, #100
+ 314 01d6 FFF7FEFF 		bl	Delay_mS
+ 153:../Sources/main.c **** 	
+ 154:../Sources/main.c **** 	// Run control loop with version selected
+ 155:../Sources/main.c **** 	Run(version);
+ 315              		.loc 1 155 0
+ 316 01da 7B68     		ldr	r3, [r7, #4]
+ 317 01dc 181C     		mov	r0, r3
+ 318 01de FFF7FEFF 		bl	Run
+ 156:../Sources/main.c **** #endif
+ 157:../Sources/main.c **** 	return 0;
+ 319              		.loc 1 157 0
+ 320 01e2 0023     		mov	r3, #0
+ 158:../Sources/main.c **** }
+ 321              		.loc 1 158 0
+ 322 01e4 181C     		mov	r0, r3
+ 323 01e6 BD46     		mov	sp, r7
+ 324 01e8 03B0     		add	sp, sp, #12
+ 325              		@ sp needed for prologue
+ 326 01ea 90BD     		pop	{r4, r7, pc}
+ 327              	.L8:
+ 328              		.align	2
+ 329              	.L7:
+ 330 01ec 40F00F40 		.word	1074786368
+ 331 01f0 80F00F40 		.word	1074786432
+ 332 01f4 03000080 		.word	-2147483645
+ 333              		.cfi_endproc
+ 334              	.LFE0:
+ 336              		.text
+ 337              	.Letext0:
+ 338              		.file 2 "C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 339              		.file 3 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/MKL25Z4.h"
+ 340              		.file 4 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Control.h"
+ 341              		.file 5 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/LineScanCamera.h"
+ 342              		.file 6 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/PID.h"
+ 343              		.file 7 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Accel.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+                            *COM*:00000004 straight_speed
+                            *COM*:00000004 medium_speed
+                            *COM*:00000004 turn_speed
+                            *COM*:00000004 brake_speed
+                            *COM*:00000004 speedC
+                            *COM*:000000c8 LineScanData
+                            *COM*:00001000 histogram
+                            *COM*:00000008 kp
+                            *COM*:00000008 ki
+                            *COM*:00000008 kd
+                            *COM*:00000008 lastError
+                            *COM*:00000008 llastError
+                            *COM*:00000004 lastOutput
+                            *COM*:00000006 AccData
+                            *COM*:00000002 Xout
+                            *COM*:00000002 Yout
+                            *COM*:00000002 Zout
+                            *COM*:00000001 Xoffset
+                            *COM*:00000001 Yoffset
+                            *COM*:00000001 Zoffset
+                            *COM*:00000004 ramp
+C:\Users\BRENTD~1\AppData\Local\Temp\cc2PSpBd.s:39     .text.main:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc2PSpBd.s:44     .text.main:00000000 main
+C:\Users\BRENTD~1\AppData\Local\Temp\cc2PSpBd.s:330    .text.main:000001ec $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+Initialize
+Delay_mS
+SetServo
+Run

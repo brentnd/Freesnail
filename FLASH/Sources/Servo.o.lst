@@ -1,0 +1,488 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Servo.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	straight_speed,4,4
+  18              		.comm	medium_speed,4,4
+  19              		.comm	turn_speed,4,4
+  20              		.comm	brake_speed,4,4
+  21              		.comm	speedC,4,4
+  22              		.comm	LineScanData,200,4
+  23              		.comm	histogram,4096,4
+  24              		.comm	kp,8,8
+  25              		.comm	ki,8,8
+  26              		.comm	kd,8,8
+  27              		.comm	lastError,8,8
+  28              		.comm	llastError,8,8
+  29              		.comm	lastOutput,4,4
+  30              		.comm	AccData,6,4
+  31              		.comm	Xout,2,2
+  32              		.comm	Yout,2,2
+  33              		.comm	Zout,2,2
+  34              		.comm	Xoffset,1,1
+  35              		.comm	Yoffset,1,1
+  36              		.comm	Zoffset,1,1
+  37              		.comm	ramp,4,4
+  38              		.global	__aeabi_i2d
+  39              		.global	__aeabi_dmul
+  40              		.global	__aeabi_ddiv
+  41              		.global	__aeabi_dadd
+  42              		.global	__aeabi_d2f
+  43              		.section	.text.SetServo,"ax",%progbits
+  44              		.align	2
+  45              		.global	SetServo
+  46              		.code	16
+  47              		.thumb_func
+  49              	SetServo:
+  50              	.LFB0:
+  51              		.file 1 "../Sources/Servo.c"
+   1:../Sources/Servo.c **** #include "Config.h"
+   2:../Sources/Servo.c **** 
+   3:../Sources/Servo.c **** /*
+   4:../Sources/Servo.c ****  * File: Servo.c
+   5:../Sources/Servo.c ****  * Freescale Cup 2014
+   6:../Sources/Servo.c ****  * Team: Freesnail
+   7:../Sources/Servo.c ****  * Author: Brent Dimmig <bnd8678@rit.edu>
+   8:../Sources/Servo.c ****  * Created: 2/13/2014
+   9:../Sources/Servo.c ****  * Modified: 2/28/2014
+  10:../Sources/Servo.c ****  * 
+  11:../Sources/Servo.c ****  * Description: Methods and macros for initializing and controlling the main turning servo.
+  12:../Sources/Servo.c ****  */
+  13:../Sources/Servo.c **** 
+  14:../Sources/Servo.c **** /*
+  15:../Sources/Servo.c ****  * Set the servo position
+  16:../Sources/Servo.c ****  * @param position - The position (-100 to 100) of the turning servo
+  17:../Sources/Servo.c ****  */
+  18:../Sources/Servo.c **** void SetServo( int position )
+  19:../Sources/Servo.c **** {
+  52              		.loc 1 19 0
+  53              		.cfi_startproc
+  54 0000 90B5     		push	{r4, r7, lr}
+  55              	.LCFI0:
+  56              		.cfi_def_cfa_offset 12
+  57              		.cfi_offset 4, -12
+  58              		.cfi_offset 7, -8
+  59              		.cfi_offset 14, -4
+  60 0002 83B0     		sub	sp, sp, #12
+  61              	.LCFI1:
+  62              		.cfi_def_cfa_offset 24
+  63 0004 00AF     		add	r7, sp, #0
+  64              	.LCFI2:
+  65              		.cfi_def_cfa_register 7
+  66 0006 7860     		str	r0, [r7, #4]
+  20:../Sources/Servo.c **** 	position -= 4;
+  67              		.loc 1 20 0
+  68 0008 7B68     		ldr	r3, [r7, #4]
+  69 000a 043B     		sub	r3, r3, #4
+  70 000c 7B60     		str	r3, [r7, #4]
+  21:../Sources/Servo.c **** 	SetServoDutyCycle(
+  22:../Sources/Servo.c **** 			(( SERVO_DUTY_RANGE*(position+100) ) / 200 )
+  71              		.loc 1 22 0
+  72 000e 7B68     		ldr	r3, [r7, #4]
+  73 0010 6433     		add	r3, r3, #100
+  74 0012 181C     		mov	r0, r3
+  75 0014 FFF7FEFF 		bl	__aeabi_i2d
+  76 0018 031C     		mov	r3, r0
+  77 001a 0C1C     		mov	r4, r1
+  78 001c 181C     		mov	r0, r3
+  79 001e 211C     		mov	r1, r4
+  80 0020 124B     		ldr	r3, .L2+4
+  81 0022 114A     		ldr	r2, .L2
+  82 0024 FFF7FEFF 		bl	__aeabi_dmul
+  83 0028 031C     		mov	r3, r0
+  84 002a 0C1C     		mov	r4, r1
+  85 002c 181C     		mov	r0, r3
+  86 002e 211C     		mov	r1, r4
+  87 0030 0F4A     		ldr	r2, .L2+8
+  88 0032 104B     		ldr	r3, .L2+12
+  89 0034 FFF7FEFF 		bl	__aeabi_ddiv
+  90 0038 031C     		mov	r3, r0
+  91 003a 0C1C     		mov	r4, r1
+  23:../Sources/Servo.c **** 			+ SERVO_DUTY_LEFT
+  92              		.loc 1 23 0
+  93 003c 181C     		mov	r0, r3
+  94 003e 211C     		mov	r1, r4
+  95 0040 0D4A     		ldr	r2, .L2+16
+  96 0042 0E4B     		ldr	r3, .L2+20
+  97 0044 FFF7FEFF 		bl	__aeabi_dadd
+  98 0048 031C     		mov	r3, r0
+  99 004a 0C1C     		mov	r4, r1
+  21:../Sources/Servo.c **** 	SetServoDutyCycle(
+ 100              		.loc 1 21 0
+ 101 004c 181C     		mov	r0, r3
+ 102 004e 211C     		mov	r1, r4
+ 103 0050 FFF7FEFF 		bl	__aeabi_d2f
+ 104 0054 031C     		add	r3, r0, #0
+ 105 0056 181C     		add	r0, r3, #0
+ 106 0058 FFF7FEFF 		bl	SetServoDutyCycle
+  24:../Sources/Servo.c **** 			);
+  25:../Sources/Servo.c **** }
+ 107              		.loc 1 25 0
+ 108 005c BD46     		mov	sp, r7
+ 109 005e 03B0     		add	sp, sp, #12
+ 110              		@ sp needed for prologue
+ 111 0060 90BD     		pop	{r4, r7, pc}
+ 112              	.L3:
+ 113 0062 C046C046 		.align	3
+ 113      C046
+ 114              	.L2:
+ 115 0068 DCF97E6A 		.word	1786706396
+ 116 006c BC74A33F 		.word	1067676860
+ 117 0070 00000000 		.word	0
+ 118 0074 00006940 		.word	1080623104
+ 119 0078 1904560E 		.word	240518169
+ 120 007c 2DB29D3F 		.word	1067299373
+ 121              		.cfi_endproc
+ 122              	.LFE0:
+ 124              		.global	__aeabi_ui2f
+ 125              		.global	__aeabi_fmul
+ 126              		.global	__aeabi_f2uiz
+ 127              		.section	.text.SetServoDutyCycle,"ax",%progbits
+ 128              		.align	2
+ 129              		.global	SetServoDutyCycle
+ 130              		.code	16
+ 131              		.thumb_func
+ 133              	SetServoDutyCycle:
+ 134              	.LFB1:
+  26:../Sources/Servo.c **** 
+  27:../Sources/Servo.c **** /* 
+  28:../Sources/Servo.c ****  * Sets the duty cycle for the forward turning servo
+  29:../Sources/Servo.c ****  * Note: Duty cycle should not be outside of valid servo range
+  30:../Sources/Servo.c ****  * @param DutyCycle - Float (0.0 to 1.0) Duty Cycle to control servo
+  31:../Sources/Servo.c ****  */
+  32:../Sources/Servo.c **** void SetServoDutyCycle( float DutyCycle )
+  33:../Sources/Servo.c **** {
+ 135              		.loc 1 33 0
+ 136              		.cfi_startproc
+ 137 0000 90B5     		push	{r4, r7, lr}
+ 138              	.LCFI3:
+ 139              		.cfi_def_cfa_offset 12
+ 140              		.cfi_offset 4, -12
+ 141              		.cfi_offset 7, -8
+ 142              		.cfi_offset 14, -4
+ 143 0002 83B0     		sub	sp, sp, #12
+ 144              	.LCFI4:
+ 145              		.cfi_def_cfa_offset 24
+ 146 0004 00AF     		add	r7, sp, #0
+ 147              	.LCFI5:
+ 148              		.cfi_def_cfa_register 7
+ 149 0006 7860     		str	r0, [r7, #4]
+  34:../Sources/Servo.c **** 	TPM1_C0V = TPM1_MOD * DutyCycle;
+ 150              		.loc 1 34 0
+ 151 0008 094C     		ldr	r4, .L5
+ 152 000a 094B     		ldr	r3, .L5
+ 153 000c 9B68     		ldr	r3, [r3, #8]
+ 154 000e 181C     		mov	r0, r3
+ 155 0010 FFF7FEFF 		bl	__aeabi_ui2f
+ 156 0014 031C     		add	r3, r0, #0
+ 157 0016 181C     		add	r0, r3, #0
+ 158 0018 7968     		ldr	r1, [r7, #4]
+ 159 001a FFF7FEFF 		bl	__aeabi_fmul
+ 160 001e 031C     		add	r3, r0, #0
+ 161 0020 181C     		add	r0, r3, #0
+ 162 0022 FFF7FEFF 		bl	__aeabi_f2uiz
+ 163 0026 031C     		mov	r3, r0
+ 164 0028 2361     		str	r3, [r4, #16]
+  35:../Sources/Servo.c **** }
+ 165              		.loc 1 35 0
+ 166 002a BD46     		mov	sp, r7
+ 167 002c 03B0     		add	sp, sp, #12
+ 168              		@ sp needed for prologue
+ 169 002e 90BD     		pop	{r4, r7, pc}
+ 170              	.L6:
+ 171              		.align	2
+ 172              	.L5:
+ 173 0030 00900340 		.word	1073975296
+ 174              		.cfi_endproc
+ 175              	.LFE1:
+ 177              		.comm	ServoTickVar,1,1
+ 178              		.section	.text.Servo_IRQHandler,"ax",%progbits
+ 179              		.align	2
+ 180              		.global	Servo_IRQHandler
+ 181              		.code	16
+ 182              		.thumb_func
+ 184              	Servo_IRQHandler:
+ 185              	.LFB2:
+  36:../Sources/Servo.c **** 
+  37:../Sources/Servo.c **** volatile unsigned char ServoTickVar;
+  38:../Sources/Servo.c **** 
+  39:../Sources/Servo.c **** /* Interrupt handler for the Servo */
+  40:../Sources/Servo.c **** void Servo_IRQHandler()
+  41:../Sources/Servo.c **** {
+ 186              		.loc 1 41 0
+ 187              		.cfi_startproc
+ 188 0000 80B5     		push	{r7, lr}
+ 189              	.LCFI6:
+ 190              		.cfi_def_cfa_offset 8
+ 191              		.cfi_offset 7, -8
+ 192              		.cfi_offset 14, -4
+ 193 0002 00AF     		add	r7, sp, #0
+ 194              	.LCFI7:
+ 195              		.cfi_def_cfa_register 7
+  42:../Sources/Servo.c **** 	//Clear the overflow mask if set.
+  43:../Sources/Servo.c **** 	if(TPM1_SC & TPM_SC_TOF_MASK)
+ 196              		.loc 1 43 0
+ 197 0004 0C4B     		ldr	r3, .L10
+ 198 0006 1A68     		ldr	r2, [r3]
+ 199 0008 8023     		mov	r3, #128
+ 200 000a 1340     		and	r3, r2
+ 201 000c 05D0     		beq	.L8
+  44:../Sources/Servo.c **** 		TPM1_SC |= TPM_SC_TOF_MASK;
+ 202              		.loc 1 44 0
+ 203 000e 0A4B     		ldr	r3, .L10
+ 204 0010 094A     		ldr	r2, .L10
+ 205 0012 1268     		ldr	r2, [r2]
+ 206 0014 8021     		mov	r1, #128
+ 207 0016 0A43     		orr	r2, r1
+ 208 0018 1A60     		str	r2, [r3]
+ 209              	.L8:
+  45:../Sources/Servo.c **** 	if (ServoTickVar < 0xff)
+ 210              		.loc 1 45 0
+ 211 001a 084B     		ldr	r3, .L10+4
+ 212 001c 1B78     		ldrb	r3, [r3]
+ 213 001e DBB2     		uxtb	r3, r3
+ 214 0020 FF2B     		cmp	r3, #255
+ 215 0022 06D0     		beq	.L7
+  46:../Sources/Servo.c **** 		ServoTickVar++;
+ 216              		.loc 1 46 0
+ 217 0024 054B     		ldr	r3, .L10+4
+ 218 0026 1B78     		ldrb	r3, [r3]
+ 219 0028 DBB2     		uxtb	r3, r3
+ 220 002a 0133     		add	r3, r3, #1
+ 221 002c DAB2     		uxtb	r2, r3
+ 222 002e 034B     		ldr	r3, .L10+4
+ 223 0030 1A70     		strb	r2, [r3]
+ 224              	.L7:
+  47:../Sources/Servo.c **** }
+ 225              		.loc 1 47 0
+ 226 0032 BD46     		mov	sp, r7
+ 227              		@ sp needed for prologue
+ 228 0034 80BD     		pop	{r7, pc}
+ 229              	.L11:
+ 230 0036 C046     		.align	2
+ 231              	.L10:
+ 232 0038 00900340 		.word	1073975296
+ 233 003c 00000000 		.word	ServoTickVar
+ 234              		.cfi_endproc
+ 235              	.LFE2:
+ 237              		.section	.text.InitServo,"ax",%progbits
+ 238              		.align	2
+ 239              		.global	InitServo
+ 240              		.code	16
+ 241              		.thumb_func
+ 243              	InitServo:
+ 244              	.LFB3:
+  48:../Sources/Servo.c **** 
+  49:../Sources/Servo.c **** /* Initialize the turning servo with the TPM module.
+  50:../Sources/Servo.c ****  * Sets up the timer clock and aligns servo to center
+  51:../Sources/Servo.c ****  */
+  52:../Sources/Servo.c **** void InitServo()
+  53:../Sources/Servo.c **** {
+ 245              		.loc 1 53 0
+ 246              		.cfi_startproc
+ 247 0000 80B5     		push	{r7, lr}
+ 248              	.LCFI8:
+ 249              		.cfi_def_cfa_offset 8
+ 250              		.cfi_offset 7, -8
+ 251              		.cfi_offset 14, -4
+ 252 0002 00AF     		add	r7, sp, #0
+ 253              	.LCFI9:
+ 254              		.cfi_def_cfa_register 7
+  54:../Sources/Servo.c **** 	SIM_SOPT2 |= SIM_SOPT2_PLLFLLSEL_MASK;
+ 255              		.loc 1 54 0
+ 256 0004 264A     		ldr	r2, .L13
+ 257 0006 2649     		ldr	r1, .L13
+ 258 0008 264B     		ldr	r3, .L13+4
+ 259 000a CB58     		ldr	r3, [r1, r3]
+ 260 000c 8021     		mov	r1, #128
+ 261 000e 4902     		lsl	r1, r1, #9
+ 262 0010 1943     		orr	r1, r3
+ 263 0012 244B     		ldr	r3, .L13+4
+ 264 0014 D150     		str	r1, [r2, r3]
+  55:../Sources/Servo.c **** 	SIM_SOPT2 &= ~(SIM_SOPT2_TPMSRC_MASK);
+ 265              		.loc 1 55 0
+ 266 0016 224A     		ldr	r2, .L13
+ 267 0018 2149     		ldr	r1, .L13
+ 268 001a 224B     		ldr	r3, .L13+4
+ 269 001c C958     		ldr	r1, [r1, r3]
+ 270 001e 224B     		ldr	r3, .L13+8
+ 271 0020 1940     		and	r1, r3
+ 272 0022 204B     		ldr	r3, .L13+4
+ 273 0024 D150     		str	r1, [r2, r3]
+  56:../Sources/Servo.c **** 	SIM_SOPT2 |= SIM_SOPT2_TPMSRC(1);
+ 274              		.loc 1 56 0
+ 275 0026 1E4A     		ldr	r2, .L13
+ 276 0028 1D49     		ldr	r1, .L13
+ 277 002a 1E4B     		ldr	r3, .L13+4
+ 278 002c CB58     		ldr	r3, [r1, r3]
+ 279 002e 8021     		mov	r1, #128
+ 280 0030 4904     		lsl	r1, r1, #17
+ 281 0032 1943     		orr	r1, r3
+ 282 0034 1B4B     		ldr	r3, .L13+4
+ 283 0036 D150     		str	r1, [r2, r3]
+  57:../Sources/Servo.c **** 
+  58:../Sources/Servo.c **** 	SIM_SCGC6 |= SIM_SCGC6_TPM1_MASK;
+ 284              		.loc 1 58 0
+ 285 0038 194A     		ldr	r2, .L13
+ 286 003a 1949     		ldr	r1, .L13
+ 287 003c 1B4B     		ldr	r3, .L13+12
+ 288 003e CB58     		ldr	r3, [r1, r3]
+ 289 0040 8021     		mov	r1, #128
+ 290 0042 8904     		lsl	r1, r1, #18
+ 291 0044 1943     		orr	r1, r3
+ 292 0046 194B     		ldr	r3, .L13+12
+ 293 0048 D150     		str	r1, [r2, r3]
+  59:../Sources/Servo.c **** 	
+  60:../Sources/Servo.c **** 	TPM1_SC = 0;
+ 294              		.loc 1 60 0
+ 295 004a 194B     		ldr	r3, .L13+16
+ 296 004c 0022     		mov	r2, #0
+ 297 004e 1A60     		str	r2, [r3]
+  61:../Sources/Servo.c **** 	TPM1_CONF = 0;
+ 298              		.loc 1 61 0
+ 299 0050 174A     		ldr	r2, .L13+16
+ 300 0052 8423     		mov	r3, #132
+ 301 0054 0021     		mov	r1, #0
+ 302 0056 D150     		str	r1, [r2, r3]
+  62:../Sources/Servo.c **** 	
+  63:../Sources/Servo.c **** 	TPM1_SC = TPM_SC_PS(SERVO_CLK_PRESCALE);
+ 303              		.loc 1 63 0
+ 304 0058 154B     		ldr	r3, .L13+16
+ 305 005a 0622     		mov	r2, #6
+ 306 005c 1A60     		str	r2, [r3]
+  64:../Sources/Servo.c **** 	TPM1_SC |= TPM_SC_TOIE_MASK;
+ 307              		.loc 1 64 0
+ 308 005e 144B     		ldr	r3, .L13+16
+ 309 0060 134A     		ldr	r2, .L13+16
+ 310 0062 1268     		ldr	r2, [r2]
+ 311 0064 4021     		mov	r1, #64
+ 312 0066 0A43     		orr	r2, r1
+ 313 0068 1A60     		str	r2, [r3]
+  65:../Sources/Servo.c **** 	
+  66:../Sources/Servo.c **** 	TPM1_MOD = SERVO_CLK/(1<<(SERVO_CLK_PRESCALE+1))/SERVO_FREQ;
+ 314              		.loc 1 66 0
+ 315 006a 114B     		ldr	r3, .L13+16
+ 316 006c 114A     		ldr	r2, .L13+20
+ 317 006e 9A60     		str	r2, [r3, #8]
+  67:../Sources/Servo.c **** 	
+  68:../Sources/Servo.c **** 	TPM1_C0SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK;
+ 318              		.loc 1 68 0
+ 319 0070 0F4B     		ldr	r3, .L13+16
+ 320 0072 2822     		mov	r2, #40
+ 321 0074 DA60     		str	r2, [r3, #12]
+  69:../Sources/Servo.c **** 	TPM1_C1SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK;
+ 322              		.loc 1 69 0
+ 323 0076 0E4B     		ldr	r3, .L13+16
+ 324 0078 2822     		mov	r2, #40
+ 325 007a 5A61     		str	r2, [r3, #20]
+  70:../Sources/Servo.c **** 	
+  71:../Sources/Servo.c **** 	SetServo(0.0);
+ 326              		.loc 1 71 0
+ 327 007c 0020     		mov	r0, #0
+ 328 007e FFF7FEFF 		bl	SetServo
+  72:../Sources/Servo.c **** 	
+  73:../Sources/Servo.c **** 	TPM1_SC |= TPM_SC_CMOD(1);
+ 329              		.loc 1 73 0
+ 330 0082 0B4B     		ldr	r3, .L13+16
+ 331 0084 0A4A     		ldr	r2, .L13+16
+ 332 0086 1268     		ldr	r2, [r2]
+ 333 0088 0821     		mov	r1, #8
+ 334 008a 0A43     		orr	r2, r1
+ 335 008c 1A60     		str	r2, [r3]
+  74:../Sources/Servo.c **** 	
+  75:../Sources/Servo.c **** 	enable_irq (INT_TPM1-16);
+ 336              		.loc 1 75 0
+ 337 008e 1220     		mov	r0, #18
+ 338 0090 FFF7FEFF 		bl	enable_irq
+  76:../Sources/Servo.c **** 	
+  77:../Sources/Servo.c **** 	PORTB_PCR0 = PORT_PCR_MUX(3);
+ 339              		.loc 1 77 0
+ 340 0094 084B     		ldr	r3, .L13+24
+ 341 0096 C022     		mov	r2, #192
+ 342 0098 9200     		lsl	r2, r2, #2
+ 343 009a 1A60     		str	r2, [r3]
+  78:../Sources/Servo.c **** }
+ 344              		.loc 1 78 0
+ 345 009c BD46     		mov	sp, r7
+ 346              		@ sp needed for prologue
+ 347 009e 80BD     		pop	{r7, pc}
+ 348              	.L14:
+ 349              		.align	2
+ 350              	.L13:
+ 351 00a0 00700440 		.word	1074032640
+ 352 00a4 04100000 		.word	4100
+ 353 00a8 FFFFFFFC 		.word	-50331649
+ 354 00ac 3C100000 		.word	4156
+ 355 00b0 00900340 		.word	1073975296
+ 356 00b4 4C1D0000 		.word	7500
+ 357 00b8 00A00440 		.word	1074044928
+ 358              		.cfi_endproc
+ 359              	.LFE3:
+ 361              		.text
+ 362              	.Letext0:
+ 363              		.file 2 "C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 364              		.file 3 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/MKL25Z4.h"
+ 365              		.file 4 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Control.h"
+ 366              		.file 5 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/LineScanCamera.h"
+ 367              		.file 6 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/PID.h"
+ 368              		.file 7 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Accel.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Servo.c
+                            *COM*:00000004 straight_speed
+                            *COM*:00000004 medium_speed
+                            *COM*:00000004 turn_speed
+                            *COM*:00000004 brake_speed
+                            *COM*:00000004 speedC
+                            *COM*:000000c8 LineScanData
+                            *COM*:00001000 histogram
+                            *COM*:00000008 kp
+                            *COM*:00000008 ki
+                            *COM*:00000008 kd
+                            *COM*:00000008 lastError
+                            *COM*:00000008 llastError
+                            *COM*:00000004 lastOutput
+                            *COM*:00000006 AccData
+                            *COM*:00000002 Xout
+                            *COM*:00000002 Yout
+                            *COM*:00000002 Zout
+                            *COM*:00000001 Xoffset
+                            *COM*:00000001 Yoffset
+                            *COM*:00000001 Zoffset
+                            *COM*:00000004 ramp
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:44     .text.SetServo:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:49     .text.SetServo:00000000 SetServo
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:133    .text.SetServoDutyCycle:00000000 SetServoDutyCycle
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:115    .text.SetServo:00000068 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:128    .text.SetServoDutyCycle:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:173    .text.SetServoDutyCycle:00000030 $d
+                            *COM*:00000001 ServoTickVar
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:179    .text.Servo_IRQHandler:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:184    .text.Servo_IRQHandler:00000000 Servo_IRQHandler
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:232    .text.Servo_IRQHandler:00000038 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:238    .text.InitServo:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:243    .text.InitServo:00000000 InitServo
+C:\Users\BRENTD~1\AppData\Local\Temp\ccea1o3d.s:351    .text.InitServo:000000a0 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_i2d
+__aeabi_dmul
+__aeabi_ddiv
+__aeabi_dadd
+__aeabi_d2f
+__aeabi_ui2f
+__aeabi_fmul
+__aeabi_f2uiz
+enable_irq

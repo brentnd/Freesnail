@@ -1,0 +1,352 @@
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 6
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"Motor.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.comm	straight_speed,4,4
+  18              		.comm	medium_speed,4,4
+  19              		.comm	turn_speed,4,4
+  20              		.comm	brake_speed,4,4
+  21              		.comm	speedC,4,4
+  22              		.comm	LineScanData,200,4
+  23              		.comm	histogram,4096,4
+  24              		.comm	kp,8,8
+  25              		.comm	ki,8,8
+  26              		.comm	kd,8,8
+  27              		.comm	lastError,8,8
+  28              		.comm	llastError,8,8
+  29              		.comm	lastOutput,4,4
+  30              		.comm	AccData,6,4
+  31              		.comm	Xout,2,2
+  32              		.comm	Yout,2,2
+  33              		.comm	Zout,2,2
+  34              		.comm	Xoffset,1,1
+  35              		.comm	Yoffset,1,1
+  36              		.comm	Zoffset,1,1
+  37              		.comm	ramp,4,4
+  38              		.section	.text.InitMotor,"ax",%progbits
+  39              		.align	2
+  40              		.global	InitMotor
+  41              		.code	16
+  42              		.thumb_func
+  44              	InitMotor:
+  45              	.LFB0:
+  46              		.file 1 "../Sources/Motor.c"
+   1:../Sources/Motor.c **** #include "Config.h"
+   2:../Sources/Motor.c **** 
+   3:../Sources/Motor.c **** /*
+   4:../Sources/Motor.c ****  * File: Motor.c
+   5:../Sources/Motor.c ****  * Freescale Cup 2014
+   6:../Sources/Motor.c ****  * Team: Freesnail
+   7:../Sources/Motor.c ****  * Author: Brent Dimmig <bnd8678@rit.edu>
+   8:../Sources/Motor.c ****  * Created: 2/13/2014
+   9:../Sources/Motor.c ****  * Modified: 2/28/2014
+  10:../Sources/Motor.c ****  * 
+  11:../Sources/Motor.c ****  * Description: DC Motor setup, PWM clock setup, and motor functions.
+  12:../Sources/Motor.c ****  */
+  13:../Sources/Motor.c **** 
+  14:../Sources/Motor.c **** /*
+  15:../Sources/Motor.c ****  * Initialize the PWM clock and signal for the
+  16:../Sources/Motor.c ****  * DC motors. Sets up the signals and
+  17:../Sources/Motor.c ****  */
+  18:../Sources/Motor.c **** void InitMotor()
+  19:../Sources/Motor.c **** {
+  47              		.loc 1 19 0
+  48              		.cfi_startproc
+  49 0000 80B5     		push	{r7, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 8
+  52              		.cfi_offset 7, -8
+  53              		.cfi_offset 14, -4
+  54 0002 00AF     		add	r7, sp, #0
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_register 7
+  20:../Sources/Motor.c **** 	SIM_SOPT2 |= SIM_SOPT2_PLLFLLSEL_MASK;
+  57              		.loc 1 20 0
+  58 0004 2C4A     		ldr	r2, .L2
+  59 0006 2C49     		ldr	r1, .L2
+  60 0008 2C4B     		ldr	r3, .L2+4
+  61 000a CB58     		ldr	r3, [r1, r3]
+  62 000c 8021     		mov	r1, #128
+  63 000e 4902     		lsl	r1, r1, #9
+  64 0010 1943     		orr	r1, r3
+  65 0012 2A4B     		ldr	r3, .L2+4
+  66 0014 D150     		str	r1, [r2, r3]
+  21:../Sources/Motor.c **** 	SIM_SOPT2 &= ~(SIM_SOPT2_TPMSRC_MASK);
+  67              		.loc 1 21 0
+  68 0016 284A     		ldr	r2, .L2
+  69 0018 2749     		ldr	r1, .L2
+  70 001a 284B     		ldr	r3, .L2+4
+  71 001c C958     		ldr	r1, [r1, r3]
+  72 001e 284B     		ldr	r3, .L2+8
+  73 0020 1940     		and	r1, r3
+  74 0022 264B     		ldr	r3, .L2+4
+  75 0024 D150     		str	r1, [r2, r3]
+  22:../Sources/Motor.c **** 	SIM_SOPT2 |= SIM_SOPT2_TPMSRC(1);
+  76              		.loc 1 22 0
+  77 0026 244A     		ldr	r2, .L2
+  78 0028 2349     		ldr	r1, .L2
+  79 002a 244B     		ldr	r3, .L2+4
+  80 002c CB58     		ldr	r3, [r1, r3]
+  81 002e 8021     		mov	r1, #128
+  82 0030 4904     		lsl	r1, r1, #17
+  83 0032 1943     		orr	r1, r3
+  84 0034 214B     		ldr	r3, .L2+4
+  85 0036 D150     		str	r1, [r2, r3]
+  23:../Sources/Motor.c **** 
+  24:../Sources/Motor.c **** 	// Enable TPM Clock
+  25:../Sources/Motor.c **** 	SIM_SCGC6 |= SIM_SCGC6_TPM0_MASK;
+  86              		.loc 1 25 0
+  87 0038 1F4A     		ldr	r2, .L2
+  88 003a 1F49     		ldr	r1, .L2
+  89 003c 214B     		ldr	r3, .L2+12
+  90 003e CB58     		ldr	r3, [r1, r3]
+  91 0040 8021     		mov	r1, #128
+  92 0042 4904     		lsl	r1, r1, #17
+  93 0044 1943     		orr	r1, r3
+  94 0046 1F4B     		ldr	r3, .L2+12
+  95 0048 D150     		str	r1, [r2, r3]
+  26:../Sources/Motor.c **** 
+  27:../Sources/Motor.c **** 	TPM0_SC = 0;
+  96              		.loc 1 27 0
+  97 004a 1F4B     		ldr	r3, .L2+16
+  98 004c 0022     		mov	r2, #0
+  99 004e 1A60     		str	r2, [r3]
+  28:../Sources/Motor.c **** 	TPM0_CONF = 0;
+ 100              		.loc 1 28 0
+ 101 0050 1D4A     		ldr	r2, .L2+16
+ 102 0052 8423     		mov	r3, #132
+ 103 0054 0021     		mov	r1, #0
+ 104 0056 D150     		str	r1, [r2, r3]
+  29:../Sources/Motor.c **** 
+  30:../Sources/Motor.c **** 	TPM0_SC = TPM_SC_PS(MOTOR_CLK_PRESCALE);
+ 105              		.loc 1 30 0
+ 106 0058 1B4B     		ldr	r3, .L2+16
+ 107 005a 0022     		mov	r2, #0
+ 108 005c 1A60     		str	r2, [r3]
+  31:../Sources/Motor.c **** 
+  32:../Sources/Motor.c **** 	// Set output compare value
+  33:../Sources/Motor.c **** 	TPM0_MOD = MOTOR_CLK / (1 << MOTOR_CLK_PRESCALE) / MOTOR_FREQUENCY;
+ 109              		.loc 1 33 0
+ 110 005e 1A4B     		ldr	r3, .L2+16
+ 111 0060 9622     		mov	r2, #150
+ 112 0062 D200     		lsl	r2, r2, #3
+ 113 0064 9A60     		str	r2, [r3, #8]
+  34:../Sources/Motor.c **** 
+  35:../Sources/Motor.c **** 	// Rising-edge, Left aligned, PWM, set on output match
+  36:../Sources/Motor.c **** 	TPM0_C0SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK;
+ 114              		.loc 1 36 0
+ 115 0066 184B     		ldr	r3, .L2+16
+ 116 0068 2822     		mov	r2, #40
+ 117 006a DA60     		str	r2, [r3, #12]
+  37:../Sources/Motor.c **** 	TPM0_C2SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSB_MASK;
+ 118              		.loc 1 37 0
+ 119 006c 164B     		ldr	r3, .L2+16
+ 120 006e 2822     		mov	r2, #40
+ 121 0070 DA61     		str	r2, [r3, #28]
+  38:../Sources/Motor.c **** 
+  39:../Sources/Motor.c **** 	// Rising-edge, Left aligned, PWM, clear on output match
+  40:../Sources/Motor.c **** 	TPM0_C1SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSA_MASK;
+ 122              		.loc 1 40 0
+ 123 0072 154B     		ldr	r3, .L2+16
+ 124 0074 2422     		mov	r2, #36
+ 125 0076 5A61     		str	r2, [r3, #20]
+  41:../Sources/Motor.c **** 	TPM0_C3SC = TPM_CnSC_MSB_MASK | TPM_CnSC_ELSA_MASK;
+ 126              		.loc 1 41 0
+ 127 0078 134B     		ldr	r3, .L2+16
+ 128 007a 2422     		mov	r2, #36
+ 129 007c 5A62     		str	r2, [r3, #36]
+  42:../Sources/Motor.c **** 
+  43:../Sources/Motor.c **** 	SetMotors(0, 0);
+ 130              		.loc 1 43 0
+ 131 007e 0020     		mov	r0, #0
+ 132 0080 0021     		mov	r1, #0
+ 133 0082 FFF7FEFF 		bl	SetMotors
+  44:../Sources/Motor.c **** 
+  45:../Sources/Motor.c **** 	TPM0_SC |= TPM_SC_CMOD(1);
+ 134              		.loc 1 45 0
+ 135 0086 104B     		ldr	r3, .L2+16
+ 136 0088 0F4A     		ldr	r2, .L2+16
+ 137 008a 1268     		ldr	r2, [r2]
+ 138 008c 0821     		mov	r1, #8
+ 139 008e 0A43     		orr	r2, r1
+ 140 0090 1A60     		str	r2, [r3]
+  46:../Sources/Motor.c **** 
+  47:../Sources/Motor.c **** 	// Connect output channels to PWM function
+  48:../Sources/Motor.c **** 	PORTC_PCR1 = PORT_PCR_MUX(4);
+ 141              		.loc 1 48 0
+ 142 0092 0E4B     		ldr	r3, .L2+20
+ 143 0094 8022     		mov	r2, #128
+ 144 0096 D200     		lsl	r2, r2, #3
+ 145 0098 5A60     		str	r2, [r3, #4]
+  49:../Sources/Motor.c **** 	PORTC_PCR2 = PORT_PCR_MUX(4);
+ 146              		.loc 1 49 0
+ 147 009a 0C4B     		ldr	r3, .L2+20
+ 148 009c 8022     		mov	r2, #128
+ 149 009e D200     		lsl	r2, r2, #3
+ 150 00a0 9A60     		str	r2, [r3, #8]
+  50:../Sources/Motor.c **** 	PORTC_PCR3 = PORT_PCR_MUX(4);
+ 151              		.loc 1 50 0
+ 152 00a2 0A4B     		ldr	r3, .L2+20
+ 153 00a4 8022     		mov	r2, #128
+ 154 00a6 D200     		lsl	r2, r2, #3
+ 155 00a8 DA60     		str	r2, [r3, #12]
+  51:../Sources/Motor.c **** 	PORTC_PCR4 = PORT_PCR_MUX(4);
+ 156              		.loc 1 51 0
+ 157 00aa 084B     		ldr	r3, .L2+20
+ 158 00ac 8022     		mov	r2, #128
+ 159 00ae D200     		lsl	r2, r2, #3
+ 160 00b0 1A61     		str	r2, [r3, #16]
+  52:../Sources/Motor.c **** }
+ 161              		.loc 1 52 0
+ 162 00b2 BD46     		mov	sp, r7
+ 163              		@ sp needed for prologue
+ 164 00b4 80BD     		pop	{r7, pc}
+ 165              	.L3:
+ 166 00b6 C046     		.align	2
+ 167              	.L2:
+ 168 00b8 00700440 		.word	1074032640
+ 169 00bc 04100000 		.word	4100
+ 170 00c0 FFFFFFFC 		.word	-50331649
+ 171 00c4 3C100000 		.word	4156
+ 172 00c8 00800340 		.word	1073971200
+ 173 00cc 00B00440 		.word	1074049024
+ 174              		.cfi_endproc
+ 175              	.LFE0:
+ 177              		.global	__aeabi_uidiv
+ 178              		.section	.text.SetMotors,"ax",%progbits
+ 179              		.align	2
+ 180              		.global	SetMotors
+ 181              		.code	16
+ 182              		.thumb_func
+ 184              	SetMotors:
+ 185              	.LFB1:
+  53:../Sources/Motor.c **** 
+  54:../Sources/Motor.c **** /* 
+  55:../Sources/Motor.c ****  * Set the DC motor speeds simultaneously.
+  56:../Sources/Motor.c ****  * @param1 MotorB (Left)  - unsigned int (-100 to 100) for motor B
+  57:../Sources/Motor.c ****  * @param2 MotorA (Right) - unsigned int (-100 to 100) for motor A
+  58:../Sources/Motor.c ****  */
+  59:../Sources/Motor.c **** void SetMotors(int MotorB, int MotorA)
+  60:../Sources/Motor.c **** {
+ 186              		.loc 1 60 0
+ 187              		.cfi_startproc
+ 188 0000 90B5     		push	{r4, r7, lr}
+ 189              	.LCFI2:
+ 190              		.cfi_def_cfa_offset 12
+ 191              		.cfi_offset 4, -12
+ 192              		.cfi_offset 7, -8
+ 193              		.cfi_offset 14, -4
+ 194 0002 83B0     		sub	sp, sp, #12
+ 195              	.LCFI3:
+ 196              		.cfi_def_cfa_offset 24
+ 197 0004 00AF     		add	r7, sp, #0
+ 198              	.LCFI4:
+ 199              		.cfi_def_cfa_register 7
+ 200 0006 7860     		str	r0, [r7, #4]
+ 201 0008 3960     		str	r1, [r7]
+  61:../Sources/Motor.c **** 	// Update count compare to effectively change duty cycle
+  62:../Sources/Motor.c **** 	TPM0_C2V = (uint16_t) ((TPM0_MOD * (MotorA+100)) / 200);
+ 202              		.loc 1 62 0
+ 203 000a 124C     		ldr	r4, .L5
+ 204 000c 114B     		ldr	r3, .L5
+ 205 000e 9B68     		ldr	r3, [r3, #8]
+ 206 0010 3A68     		ldr	r2, [r7]
+ 207 0012 6432     		add	r2, r2, #100
+ 208 0014 5343     		mul	r3, r2
+ 209 0016 181C     		mov	r0, r3
+ 210 0018 C821     		mov	r1, #200
+ 211 001a FFF7FEFF 		bl	__aeabi_uidiv
+ 212 001e 031C     		mov	r3, r0
+ 213 0020 9BB2     		uxth	r3, r3
+ 214 0022 2362     		str	r3, [r4, #32]
+  63:../Sources/Motor.c **** 	TPM0_C3V = TPM0_C2V;
+ 215              		.loc 1 63 0
+ 216 0024 0B4B     		ldr	r3, .L5
+ 217 0026 0B4A     		ldr	r2, .L5
+ 218 0028 126A     		ldr	r2, [r2, #32]
+ 219 002a 9A62     		str	r2, [r3, #40]
+  64:../Sources/Motor.c **** 	TPM0_C0V = (uint16_t) ((TPM0_MOD * (MotorB+100)) / 200);
+ 220              		.loc 1 64 0
+ 221 002c 094C     		ldr	r4, .L5
+ 222 002e 094B     		ldr	r3, .L5
+ 223 0030 9B68     		ldr	r3, [r3, #8]
+ 224 0032 7A68     		ldr	r2, [r7, #4]
+ 225 0034 6432     		add	r2, r2, #100
+ 226 0036 5343     		mul	r3, r2
+ 227 0038 181C     		mov	r0, r3
+ 228 003a C821     		mov	r1, #200
+ 229 003c FFF7FEFF 		bl	__aeabi_uidiv
+ 230 0040 031C     		mov	r3, r0
+ 231 0042 9BB2     		uxth	r3, r3
+ 232 0044 2361     		str	r3, [r4, #16]
+  65:../Sources/Motor.c **** 	TPM0_C1V = TPM0_C0V;
+ 233              		.loc 1 65 0
+ 234 0046 034B     		ldr	r3, .L5
+ 235 0048 024A     		ldr	r2, .L5
+ 236 004a 1269     		ldr	r2, [r2, #16]
+ 237 004c 9A61     		str	r2, [r3, #24]
+  66:../Sources/Motor.c **** }
+ 238              		.loc 1 66 0
+ 239 004e BD46     		mov	sp, r7
+ 240 0050 03B0     		add	sp, sp, #12
+ 241              		@ sp needed for prologue
+ 242 0052 90BD     		pop	{r4, r7, pc}
+ 243              	.L6:
+ 244              		.align	2
+ 245              	.L5:
+ 246 0054 00800340 		.word	1073971200
+ 247              		.cfi_endproc
+ 248              	.LFE1:
+ 250              		.text
+ 251              	.Letext0:
+ 252              		.file 2 "C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include/cstdint"
+ 253              		.file 3 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/MKL25Z4.h"
+ 254              		.file 4 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Control.h"
+ 255              		.file 5 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/LineScanCamera.h"
+ 256              		.file 6 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/PID.h"
+ 257              		.file 7 "C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers/Accel.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Motor.c
+                            *COM*:00000004 straight_speed
+                            *COM*:00000004 medium_speed
+                            *COM*:00000004 turn_speed
+                            *COM*:00000004 brake_speed
+                            *COM*:00000004 speedC
+                            *COM*:000000c8 LineScanData
+                            *COM*:00001000 histogram
+                            *COM*:00000008 kp
+                            *COM*:00000008 ki
+                            *COM*:00000008 kd
+                            *COM*:00000008 lastError
+                            *COM*:00000008 llastError
+                            *COM*:00000004 lastOutput
+                            *COM*:00000006 AccData
+                            *COM*:00000002 Xout
+                            *COM*:00000002 Yout
+                            *COM*:00000002 Zout
+                            *COM*:00000001 Xoffset
+                            *COM*:00000001 Yoffset
+                            *COM*:00000001 Zoffset
+                            *COM*:00000004 ramp
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:39     .text.InitMotor:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:44     .text.InitMotor:00000000 InitMotor
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:184    .text.SetMotors:00000000 SetMotors
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:168    .text.InitMotor:000000b8 $d
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:179    .text.SetMotors:00000000 $t
+C:\Users\BRENTD~1\AppData\Local\Temp\cc3Dm1TT.s:246    .text.SetMotors:00000054 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidiv
