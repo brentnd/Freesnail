@@ -104,6 +104,11 @@ int minValue() {
 	return limit;
 }
 
+/*
+ * Applies a contrast stretching algorithm
+ * by making a data histogram and stretching the remaining
+ * 90% of the data accross the 0 to 4096 range.
+ */
 void stretchFilter() {
 	int i;
 	int sum = 0;
@@ -116,28 +121,37 @@ void stretchFilter() {
 	min = minValue();
 	factor = (double) max / (double) (max - min);
 
+	// Check if the data is all similar, all white, all black
 	if (factor > 2.5) {
 		for (i = 0; i < 100; i++)
 			LineScanData[i] = 1010;
 		return;
 	}
 
+	// Make histogram
 	for (i = 0; i < 4096; i++)
 		histogram[i] = 0;
 	for (i = 0; i < 100; i++)
 		histogram[LineScanData[i]]++;
+	
+	// Find 5% cutoff values from histogram
 	i = 0;
+	// TODO: maybe decrease lower cutoff to 4 or 3%
 	while (sum < 5)
 		sum += histogram[i++];
 	low_cut = i;
 	sum = 0;
 	i = 4095;
+	// Find upper cutoff value
+	// TODO: maybe increase upper cutoff to 10%?
 	while (sum < 5)
 		sum += histogram[i--];
 	high_cut = i;
 
+	// Precompute the factor used in stretching
 	factor = (4096 / (high_cut - low_cut));
 
+	// Stretch data accross range
 	for (i = 0; i < 100; i++)
 		if (LineScanData[i] <= low_cut)
 			LineScanData[i] = 0;
@@ -148,28 +162,9 @@ void stretchFilter() {
 }
 
 /*
- * Finds finish by counting two small white bars
+ * Uses median filter and a contract stretching algorithm
+ * before thresholding the data.
  */
-int isFinish() {
-	int width, i;
-	int wcount = 0;
-	width = -100;
-	for (i = 1; i < 100; i++) {
-		if (LineScanData[i] == 1) {
-			// Start new black bar
-			if ((LineScanData[i - 1] == 0))
-				width = 1;
-			else
-				width++;
-		} else {
-			if ((width > 10) && (width < 12))
-				wcount++;
-			width = 0;
-		}
-	}
-	return (wcount == 2);
-}
-
 void filterData() {
 	int i;
 
@@ -188,6 +183,7 @@ void filterData() {
 	// Median filter on raw data
 	medianFilter();
 
+	// Contrast stretching.
 	stretchFilter();
 
 	threshold = 1000;
@@ -198,6 +194,31 @@ void filterData() {
 
 	// Median filter on 1,0 data to filter outliers
 	medianFilter();
+}
+
+
+/*
+ * Finds finish by counting two small white bars
+ */
+int isFinish() {
+	int width, i;
+	int wcount = 0;
+	width = -100;
+	for (i = 1; i < 100; i++) {
+		if (LineScanData[i] == 1) {
+			// Start new black bar
+			if ((LineScanData[i - 1] == 0))
+				width = 1;
+			else
+				width++;
+		} else {
+			// TODO: specify min and max width of finish lines
+			if ((width > 10) && (width < 12))
+				wcount++;
+			width = 0;
+		}
+	}
+	return (wcount == 2);
 }
 
 /*
@@ -249,6 +270,31 @@ int GetLineIndexCenter() {
 }
 
 /*
+ * LIGHT SURFACE
+ * Find the position of the center of the track when
+ * the track is white with dark edges and a light surface.
+ */
+int GetLineIndexEdgeLight() {
+
+	// TODO: Code from GetLineIndexCenter to find the line
+	
+	// Then code from GetLineIndexEdge to make line position into center position
+	//Found finish
+	if (isFinish())
+		position = FINISH;
+	else if ((left_edge > right_edge) & (left_edge < 50))
+		position = left_edge * 2;
+	else if ((right_edge > left_edge) & (right_edge < 50))
+		position = -right_edge * 2;
+	else
+		position = LNF;
+	return position;
+}
+
+/*
+ * DARK SURFACE
+ * Find the position of the center of the track when
+ * the track is white with dark edges and dark surface.
  */
 int GetLineIndexEdge() {
 	int position = 0;

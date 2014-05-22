@@ -11,9 +11,11 @@
 #include "PID.h"
 #include "Accel.h"
 
-#define DEUG
+// Transmit serial data to monitor run
+//#define MONITOR
+#undef MONITOR
 
-#ifdef DEBUG
+#ifdef MONITOR
 #include "UART.h"
 #endif
 

@@ -114,21 +114,18 @@ void FinishLine() {
 	medium_speed = 0;
 	turn_speed = 0;
 	brake_speed = 0;
-	LED0_ON;
-	LED1_OFF;
-	LED2_ON;
-	LED3_OFF;
+	LED0_ON; LED1_OFF; LED2_ON; LED3_OFF;
 	while (1) {
-		LED0_TOG;
-		LED1_TOG;
-		LED2_TOG;
-		LED3_TOG;
+		LED0_TOG; LED1_TOG; LED2_TOG; LED3_TOG;
 		Delay_mS(100);
 	}
 }
 
 /* Set speed values per version */
 void InitializeControls(int version) {
+
+	// Reset speed counter
+	speedC = 0;
 	// Start different programs based on the on-board buttons
 	switch (version) {
 	case 0:
@@ -160,15 +157,11 @@ void Run(int version) {
 	int line_pos = 0;
 	int last_line_pos = 0;
 	int lines = 0;
-	int diff;
-
-	speedC = 0;
 
 	InitializeControls(version);
 
 	// Enable motors after they're stopped
 	SetMotors(0, 0);
-
 	HBRIDGE_ENABLE;
 
 	for (;;) {

@@ -5,8 +5,6 @@
  * Freescale Cup 2014
  * Team: Freesnail
  * Author: Brent Dimmig <bnd8678@rit.edu>
- * Created: 2/13/2014
- * Modified: 2/28/2014
  * 
  * Description: Methods and macros for initializing and controlling the main turning servo.
  */

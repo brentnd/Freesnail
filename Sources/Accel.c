@@ -9,9 +9,9 @@ void InitAccel() {
 	Accel_calibrate();
 }
 
-/******************************************************************************
+/*
  * MCU initialization function
- ******************************************************************************/
+ */
 void Accel_port_init(void) {
 	//I2C0 module initialization
 	SIM_SCGC4 |= SIM_SCGC4_I2C0_MASK;		// Turn on clock to I2C0 module 
@@ -32,9 +32,9 @@ void Accel_port_init(void) {
 	NVIC_ISER |= 1 << ((INT_PORTA - 16) % 32);
 }
 
-/******************************************************************************
+/*
  * Accelerometer initialization function
- ******************************************************************************/
+ */
 void Accel_reg_init(void) {
 	unsigned char reg_val = 0;
 
@@ -50,9 +50,9 @@ void Accel_reg_init(void) {
 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG1, 0x3D);// ODR = 1.56Hz, Reduced noise, Active mode	
 }
 
-/******************************************************************************
+/*
  * Simple offset calibration
- ******************************************************************************/
+ */
 void Accel_calibrate(void) {
 	unsigned char reg_val = 0;
 
@@ -81,9 +81,9 @@ void Accel_calibrate(void) {
 	I2C_WriteRegister(MMA845x_I2C_ADDRESS, CTRL_REG1, 0x3D);// ODR = 1.56Hz, Reduced noise, Active mode	
 }
 
-/******************************************************************************
+/*
  * PORT A Interrupt handler
- ******************************************************************************/
+ */
 void PORTA_IRQHandler() {
 	// Clear the interrupt flag
 	PORTA_PCR14 |= PORT_PCR_ISF_MASK;
@@ -97,17 +97,10 @@ void PORTA_IRQHandler() {
 	Zout = ((short) (AccData[4]<<8 | AccData[5])) >> 2;
 
 	ramp = 0;
+	// Set ramp variable for up or down based on accelerometer data
 	if(Zout < 3950)
-	{
-		// Down ramp
 		if(Xout < -1000)
-		{
 			ramp = -1;
-		}
-		// Up ramp
 		else if(Xout > 1000)
-		{
 			ramp = 1;
-		}
-	}
 }

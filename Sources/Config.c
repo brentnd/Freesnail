@@ -6,8 +6,6 @@
  * Team: Freesnail
  * Author: Brent Dimmig <bnd8678@rit.edu>
  * 		   Ben Kraines 	<bjk6868@rit.edu>
- * Created: 2/13/2014
- * Modified: 2/28/2014
  * 
  * Description: Overall setup functionality.
  */
@@ -24,6 +22,10 @@ void Initialize() {
 	InitMotor();
 	InitAccel();
 	InitADCs();
+#ifdef MONITOR
+	InitUARTs();
+	io_printf("Monitoring Freescale Run\n");
+#endif
 }
 
 /*
