@@ -4,8 +4,8 @@
 -g3
 -gdwarf-2
 -gstrict-dwarf
--I"C:/Users/Brent Dimmig/workspace/Freesnail/Project_Headers"
--I"C:/Users/Brent Dimmig/workspace/Freesnail/Project_Settings/Startup_Code"
+-I"C:/Users/Brent Dimmig/workspace/git/Freesnail/Project_Headers"
+-I"C:/Users/Brent Dimmig/workspace/git/Freesnail/Project_Settings/Startup_Code"
 -I"C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_C/include"
 -I"C:/Freescale/CW MCU v10.5/MCU/ARM_GCC_Support/ewl/EWL_Runtime/include"
 -O0
