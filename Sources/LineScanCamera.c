@@ -275,6 +275,9 @@ int GetLineIndexCenter() {
  * the track is white with dark edges and a light surface.
  */
 int GetLineIndexEdgeLight() {
+	int position = 0;
+	int left_edge, right_edge;
+	int i = 0;
 
 	// TODO: Code from GetLineIndexCenter to find the line
 	

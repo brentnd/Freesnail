@@ -157,6 +157,7 @@ void Run(int version) {
 	int line_pos = 0;
 	int last_line_pos = 0;
 	int lines = 0;
+	int diff;
 
 	InitializeControls(version);
 
