@@ -163,7 +163,7 @@ void Run(int version) {
 
 	// Enable motors after they're stopped
 	SetMotors(0, 0);
-	HBRIDGE_ENABLE;
+	HBRIDGE_DISABLE;
 
 	for (;;) {
 		// Poll for new image (~10ms)
@@ -194,6 +194,7 @@ void Run(int version) {
 
 		// Average both indices
 		lines = lines * 0.2 + 0.4 * line_pos + 0.4 * last_line_pos;
+		
 
 		// Calculate direction based on line position
 		direction = ComputeTurn(lines);
@@ -203,5 +204,9 @@ void Run(int version) {
 
 		// Update servo and motors
 		SetVelocity(direction, speed);
+
+#ifdef MONITOR
+	  io_printf("Loop Data: INSERT DATA HERE\n");
+#endif
 	}
 }

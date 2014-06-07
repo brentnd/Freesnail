@@ -13,7 +13,7 @@
 
 // Transmit serial data to monitor run
 //#define MONITOR
-#undef MONITOR
+#define MONITOR
 
 #ifdef MONITOR
 #include "UART.h"

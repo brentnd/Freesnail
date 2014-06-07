@@ -185,6 +185,13 @@ void filterData() {
 
 	// Contrast stretching.
 	stretchFilter();
+	
+#ifdef MONITOR
+    io_printf("Camera Data: ");
+    for(i=0; i<100; i++)
+      io_printf("%04d ",LineScanData[i]);
+    io_printf("\n");
+#endif
 
 	threshold = 1000;
 
@@ -276,8 +283,7 @@ int GetLineIndexCenter() {
  */
 int GetLineIndexEdgeLight() {
 	int position = 0;
-	int left_edge, right_edge;
-	int i = 0;
+	int left_edge = 0, right_edge = 0;
 
 	// TODO: Code from GetLineIndexCenter to find the line
 	
