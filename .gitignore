@@ -1,3 +1,9 @@
 FLASH/
+.settings/
 *.lst
 *.o
+*.prefs
+.project
+.cwGeneratedFileSetLog
+.cproject
+ReferencedRSESystems.xml
