@@ -24,7 +24,7 @@ void Initialize() {
 	InitADCs();
 #ifdef MONITOR
 	InitUARTs();
-	io_printf("Monitoring Freescale Run\n");
+  transmit = 0;
 #endif
 }
 

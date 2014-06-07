@@ -206,7 +206,8 @@ void Run(int version) {
 		SetVelocity(direction, speed);
 
 #ifdef MONITOR
-	  io_printf("Loop Data: INSERT DATA HERE\n");
+		transmit++;
+	  //io_printf("Loop Data: INSERT DATA HERE\n");
 #endif
 	}
 }

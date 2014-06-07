@@ -179,19 +179,25 @@ void filterData() {
 		LineScanData[i] = LineScanData[6];
 		LineScanData[(99 - i)] = LineScanData[(93)];
 	}
-
+  
 	// Median filter on raw data
 	medianFilter();
+	
+#ifdef MONITOR
+  if(transmit == 2)
+  {
+    transmit = 0;
+      for(i=0; i<100; i++)
+        //uart_putchar((uint8)((LineScanData[i]/17)+1));
+        printf("%03d,",(uint8)(LineScanData[i]/17));
+    uart_putchar('$');
+  }
+#endif
 
 	// Contrast stretching.
 	stretchFilter();
 	
-#ifdef MONITOR
-    io_printf("Camera Data: ");
-    for(i=0; i<100; i++)
-      io_printf("%04d ",LineScanData[i]);
-    io_printf("\n");
-#endif
+	
 
 	threshold = 1000;
 

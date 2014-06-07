@@ -4,6 +4,8 @@
 #define SDA_SERIAL_BAUD		115200
 #define printf io_printf
 
+int transmit;
+
 void InitUARTs();
 
 void UART_Process();
