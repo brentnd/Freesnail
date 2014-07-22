@@ -1,5 +1,6 @@
 #include "UART.h"
 #include <stdarg.h>
+#include <string.h>
 
 #define TRUE 1
 #define FALSE 0

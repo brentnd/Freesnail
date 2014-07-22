@@ -24,7 +24,6 @@ void Initialize() {
 	InitADCs();
 #ifdef MONITOR
 	InitUARTs();
-  transmit = 0;
 #endif
 }
 

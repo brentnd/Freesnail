@@ -149,6 +149,8 @@ void InitializeControls(int version) {
  * Main control loop to run the track for the Freescale Cup
  */
 void Run(int version) {
+  
+  
 	// Speed variables
 	int speed = 0;
 	int direction = 0;
@@ -206,8 +208,12 @@ void Run(int version) {
 		SetVelocity(direction, speed);
 
 #ifdef MONITOR
-		transmit++;
-	  //io_printf("Loop Data: INSERT DATA HERE\n");
+		// line    turn    speed   accel\n
+		// (0,200) (0,200) (0,100) 0,1,2
+		uart_putchar((char)(lines+100));
+    uart_putchar((char)(direction+100));
+    uart_putchar((char)(speed));
+    uart_putchar((char)(ramp+1));
 #endif
 	}
 }
