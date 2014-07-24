@@ -160,6 +160,7 @@ void Run(int version) {
 	int last_line_pos = 0;
 	int lines = 0;
 	int diff;
+	int trans = 0;
 
 	InitializeControls(version);
 
@@ -208,12 +209,17 @@ void Run(int version) {
 		SetVelocity(direction, speed);
 
 #ifdef MONITOR
-		// line    turn    speed   accel\n
+		// line    turn    speed   accel
 		// (0,200) (0,200) (0,100) 0,1,2
-		uart_putchar((char)(lines+100));
-    uart_putchar((char)(direction+100));
-    uart_putchar((char)(speed));
-    uart_putchar((char)(ramp+1));
+		
+		if(trans++ == 10)
+		{
+      uart_putchar((char)(lines+100));
+      uart_putchar((char)(direction+100));
+      uart_putchar((char)(speed));
+      uart_putchar((char)(ramp+1));
+      trans = 0;
+		}
 #endif
 	}
 }
