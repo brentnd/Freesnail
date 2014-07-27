@@ -23,19 +23,41 @@ void setup()
   int wheel=0;
   int speed=0;
   int ramp=0;
+  
+  textAlign(CENTER,BOTTOM);
+  
   background(0);
   fill(255);
+  
+  // Labels
+  text("Line",width*0.2,height*0.9);
+  text("Turn",width*0.4,height*0.9);
+  text("Speed",width*0.6,height*0.9);
+  text("Ramp",width*0.8,height*0.9);
 }
 
 
 void draw()
 {
-  // While track
-  fill(255,50);
-  rect(.25*width,0,width*0.5,height);
+  rect(.25*width,0,width*0.5,height*0.5);
   
   updateStatus();
+  displayStatus();
   moveCar();
+}
+
+void displayStatus()
+{
+  text(line,width*0.2,height*0.9);
+  text(wheel,width*0.4,height*0.9);
+  text(speed,width*0.6,height*0.9);
+  
+  String rampText = "-";
+  if(ramp == -1)
+    rampText = "UP";
+  if(ramp == 1)
+    rampText = "DOWN";
+  text(rampText,width*0.8,height*0.9);
 }
 
 void moveCar()
