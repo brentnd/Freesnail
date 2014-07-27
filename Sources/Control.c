@@ -103,10 +103,12 @@ int ComputeSpeed(int direction) {
 /* Stop the car at the finish */
 void FinishLine() {
 
-  uart_putchar((char)(0));
-  uart_putchar((char)(1));
-  uart_putchar((char)(2));
-  uart_putchar((char)(3));
+  char finish[4];
+  finish[0] = 0;
+  finish[1] = 0;
+  finish[2] = 0;
+  finish[3] = 0;
+  uart_write(finish,4);
   
 	Delay_mS(100);
 	SetSpeed(-60, -60);
@@ -220,11 +222,27 @@ void Run(int version) {
 		
 		if(trans++ == 10)
 		{
-      uart_putchar((char)(lines+100));
-      uart_putchar((char)(direction+100));
-      uart_putchar((char)(speed));
-      uart_putchar((char)(ramp+1));
+		  char status[4];
+		  status[0] = (char)(lines+100);
+      status[1] = (char)(direction+100);
+      status[2] = (char)(speed);
+      status[3] = (char)(ramp+1);
+      uart_write(status,4);
       trans = 0;
+		}
+		if(uart_rx(6)) {
+		  char update[6];
+		  uart_read(update,6);
+	    char p = update[0];
+	    char p2 = update[1];
+	    char i = update[2];
+	    char i2 = update[3];
+	    char d = update[4];
+	    char d2 = update[5];
+	    double newp = (double)p + (double)(p2/10.0);
+      double newi = (double)i + (double)(i2/10.0);
+      double newd = (double)d + (double)(d2/10.0);
+	    TunePID(newp, newi, newd);
 		}
 #endif
 	}

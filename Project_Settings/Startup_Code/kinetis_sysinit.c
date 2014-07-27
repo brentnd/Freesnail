@@ -118,7 +118,7 @@ void (* const InterruptVector[])() __attribute__ ((section(".vectortable"))) = {
     I2C1_IRQHandler, /* I2C1 interrupt */
     SPI0_IRQHandler, /* SPI0 Interrupt */
     SPI1_IRQHandler, /* SPI1 Interrupt */
-    0, /* UART0 Status and Error interrupt */
+    UART0_IRQHandler, /* UART0 Status and Error interrupt */
     0, /* UART1 Status and Error interrupt */
     0, /* UART2 Status and Error interrupt */
     ADC0_IRQHandler, /* ADC0 interrupt */
