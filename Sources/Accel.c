@@ -98,9 +98,12 @@ void PORTA_IRQHandler() {
 
 	ramp = 0;
 	// Set ramp variable for up or down based on accelerometer data
-	if(Zout < 3950)
-		if(Xout < -1000)
-			ramp = -1;
-		else if(Xout > 1000)
-			ramp = 1;
+  // Set ramp variable for up or down based on accelerometer data
+  if(Zout < 4000)
+  {
+    if(Yout < -600)
+      ramp = -1;
+    else if(Yout > 600)
+      ramp = 1;
+  }
 }
