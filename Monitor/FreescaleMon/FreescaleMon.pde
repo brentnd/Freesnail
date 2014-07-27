@@ -73,6 +73,23 @@ void moveCar()
   image(carImage,xpos,.1*height);
 }
 
+void updateParams()
+{
+  byte p = 0;
+  byte p2 = 0;
+  byte i = 0;
+  byte i2 = 0;
+  byte d = 0;
+  byte d2 = 0;
+  myPort.write(p);
+  myPort.write(p2);
+  myPort.write(i);
+  myPort.write(i2);
+  myPort.write(d);
+  myPort.write(d2);
+  println("Updating tuning parameters");
+}
+
 void updateStatus()
 {
   byte[] inBuffer = new byte[4];
@@ -111,7 +128,7 @@ void keyPressed() {
   switch(key)
   {
     default:
-      myPort.write(key);
+      updateParams();
       break;
   }
 }
