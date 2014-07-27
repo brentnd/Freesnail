@@ -102,6 +102,12 @@ int ComputeSpeed(int direction) {
 
 /* Stop the car at the finish */
 void FinishLine() {
+
+  uart_putchar((char)(0));
+  uart_putchar((char)(1));
+  uart_putchar((char)(2));
+  uart_putchar((char)(3));
+  
 	Delay_mS(100);
 	SetSpeed(-60, -60);
 	Delay_mS(400);

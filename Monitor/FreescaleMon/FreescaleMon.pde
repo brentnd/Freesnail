@@ -2,6 +2,7 @@ import processing.serial.*;
 
 Serial myPort;
 PImage carImage;
+PImage wheelImage;
 
 int line;
 int wheel;
@@ -39,32 +40,37 @@ void setup()
 
 void draw()
 {
+  displayStatus();
+  
+  fill(255);
   rect(.25*width,0,width*0.5,height*0.5);
+  moveCar();
   
   updateStatus();
-  displayStatus();
-  moveCar();
 }
 
 void displayStatus()
 {
-  text(line,width*0.2,height*0.9);
-  text(wheel,width*0.4,height*0.9);
-  text(speed,width*0.6,height*0.9);
+  fill(0);
+  rect(0,height*0.9,width,height*0.1);
+  fill(255);
+  float h = height*0.95;
+  text(line,width*0.2,h);
+  text(wheel,width*0.4,h);
+  text(speed,width*0.6,h);
   
   String rampText = "-";
   if(ramp == -1)
     rampText = "UP";
   if(ramp == 1)
     rampText = "DOWN";
-  text(rampText,width*0.8,height*0.9);
+  text(rampText,width*0.8,h);
 }
 
 void moveCar()
 {
-  println(0.25*width+((line+100.0)/200.0)*(width*0.5));
-  image(carImage,0.25*width+((line+100.0)/200.0)*(width*0.5-carImage.width),.1*height);
-  println(line);
+  float xpos = 0.25*width+((-line+100.0)/200.0)*(width*0.5-carImage.width);
+  image(carImage,xpos,.1*height);
 }
 
 void updateStatus()
@@ -76,10 +82,27 @@ void updateStatus()
   inBuffer = myPort.readBytes();
   if(inBuffer != null)
   {
-    line  = int(inBuffer[0])-100;
-    wheel = int(inBuffer[1])-100;
-    speed = int(inBuffer[2]);
-    ramp  = int(inBuffer[3])-1;
+    if((inBuffer[0]==3)
+      &(inBuffer[1]==2)
+      &(inBuffer[2]==1)
+      &(inBuffer[3]==0))
+    {
+      println("Starting control loop...");
+    }
+    else if((inBuffer[0]==0)
+           &(inBuffer[1]==1)
+           &(inBuffer[2]==2)
+           &(inBuffer[3]==3))
+    {
+      println("FINISH LINE...");
+    }
+    else
+    {
+      line  = int(inBuffer[0])-100;
+      wheel = int(inBuffer[1])-100;
+      speed = int(inBuffer[2]);
+      ramp  = int(inBuffer[3])-1;
+    }
   }
 }
 

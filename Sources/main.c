@@ -24,6 +24,12 @@ int main(void) {
 			state = 1;
 	}
 	// Count down to start
+
+  uart_putchar((char)(3));
+  uart_putchar((char)(2));
+  uart_putchar((char)(1));
+  uart_putchar((char)(0));
+  
 	LED1_ON; LED2_ON; LED3_ON; LED0_OFF;
 	// 3
 	Delay_mS(800); LED1_OFF;
