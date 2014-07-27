@@ -7,3 +7,4 @@ FLASH/
 .cwGeneratedFileSetLog
 .cproject
 ReferencedRSESystems.xml
+Monitor/FreescaleMon/sketch.properties
