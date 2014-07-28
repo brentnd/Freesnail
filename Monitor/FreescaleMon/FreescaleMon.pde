@@ -9,6 +9,8 @@ int wheel;
 int speed;
 int ramp;
 
+int w;
+
 void setup() 
 {
   size(600, 600);
@@ -20,10 +22,12 @@ void setup()
   String portName = Serial.list()[0];
   myPort = new Serial(this, portName, 115200);
   
-  int line=0;
-  int wheel=0;
-  int speed=0;
-  int ramp=0;
+  line=0;
+  wheel=0;
+  speed=0;
+  ramp=0;
+  
+  w = int(0.02*width); 
   
   textAlign(CENTER,BOTTOM);
   
@@ -35,6 +39,13 @@ void setup()
   text("Turn",width*0.4,height*0.9);
   text("Speed",width*0.6,height*0.9);
   text("Ramp",width*0.8,height*0.9);
+  
+  myPort.write("a");
+  myPort.write("b");
+  myPort.write("c");
+  myPort.write("d");
+  myPort.write("e");
+  myPort.write(13);
 }
 
 
@@ -44,7 +55,10 @@ void draw()
   
   fill(255);
   rect(.25*width,0,width*0.5,height*0.5);
-  moveCar();
+  showCar();
+  stroke(255);
+  showWheel();
+  showSpeed();
   
   updateStatus();
 }
@@ -67,10 +81,32 @@ void displayStatus()
   text(rampText,width*0.8,h);
 }
 
-void moveCar()
+void showCar()
 {
   float xpos = 0.25*width+((-line+100.0)/200.0)*(width*0.5-carImage.width);
   image(carImage,xpos,.1*height);
+}
+
+void showWheel()
+{
+  fill(0,40);
+  rect(.25*width,0.5*height,width*0.5,w*3);
+  float xpos = 0.25*width+((wheel+100.0)/200.0)*(width*0.5-w);
+  fill(0,0,255);
+  rect(xpos,.5*height,w,w*3);
+}
+
+void showSpeed()
+{
+  fill(0,40);
+  rect(.1*width,0,w*3,height*0.5);
+  float ypos = (1-(speed/100.0))*(width*0.5-w);
+  // Red
+  if(speed < 10)
+    fill(255,0,0);
+  else
+    fill(350-speed*3,180,0);
+  rect(.1*width,ypos,w*3,w);
 }
 
 void updateParams()

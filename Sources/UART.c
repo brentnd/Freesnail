@@ -2,7 +2,7 @@
 #include "buffer.h"
 
 // Circular buffers for transmit and receive
-#define BUFLEN 128
+#define BUFLEN 1024
 
 static uint8_t _tx_buffer[sizeof(RingBuffer) + BUFLEN] __attribute__ ((aligned(4)));
 static uint8_t _rx_buffer[sizeof(RingBuffer) + BUFLEN] __attribute__ ((aligned(4)));
@@ -93,8 +93,7 @@ void InitUARTs() {
 
   PORTA_PCR1 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;
   PORTA_PCR2 = PORT_PCR_MUX(2) | PORT_PCR_DSE_MASK;
-
-  //Select PLL/2 Clock
+  
   SIM_SOPT2 &= ~(3 << 26);
   SIM_SOPT2 |= SIM_SOPT2_UART0SRC(1);
   SIM_SOPT2 |= SIM_SOPT2_PLLFLLSEL_MASK;
@@ -119,21 +118,9 @@ void uart_init(int sysclk, int baud)
   uint32 baud_rate;
   uint32 temp = 0;
   
-    SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
-        
-    // Turn on clock to UART0 module and select 48Mhz clock (FLL/PLL source)
-    SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
-    SIM_SOPT2 &= ~SIM_SOPT2_UART0SRC_MASK;
-    SIM_SOPT2 |= SIM_SOPT2_UART0SRC(1);                 // FLL/PLL source
+  SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
 
-    // Select "Alt 2" usage to enable UART0 on pins
-    PORTA_PCR1 = PORT_PCR_MUX(2);
-    PORTA_PCR2 = PORT_PCR_MUX(2);
-
-    UART0_C2 = 0;
-    UART0_C1 = 0;
-    UART0_C3 = 0;
-    UART0_S2 = 0;     
+  UART0_C2 &= ~(UART0_C2_RE_MASK | UART0_C2_TE_MASK | UART0_C2_RIE_MASK);  
 
     // Verify that a valid clock value has been passed to the function 
     if ((sysclk > 50000) || (sysclk < 32)) {
@@ -206,8 +193,6 @@ void uart_init(int sysclk, int baud)
       UART0_BDH = reg_temp | UART0_BDH_SBR(((sbr_val & 0x1F00) >> 8));
       UART0_BDL = (uint8) (sbr_val & UART0_BDL_SBR_MASK);
 
-      /* Enable receiver and transmitter */
-      UART0_C2 |= (UART0_C2_TE_MASK | UART0_C2_RE_MASK);
     } else {
       // Unacceptable baud rate difference
       // More than 3% difference!!
@@ -221,6 +206,6 @@ void uart_init(int sysclk, int baud)
     buf_reset(rx_buffer, BUFLEN);
 
     // Enable the transmitter, receiver, and receive interrupts
-    UART0_C2 = UARTLP_C2_RE_MASK | UARTLP_C2_TE_MASK | UART_C2_RIE_MASK;
+    UART0_C2 |= (UART0_C2_RE_MASK | UART0_C2_TE_MASK | UART0_C2_RIE_MASK);
     enable_irq(INT_UART0 - 16);
 }
