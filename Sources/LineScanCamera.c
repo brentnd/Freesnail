@@ -274,20 +274,20 @@ int GetLineIndexCenter() {
  * Find the position of the center of the track when
  * the track is white with dark edges and a light surface.
  */
+//TODO possibly address issue of "point of no return"
 int GetLineIndexEdgeLight() {
 	int position = 0;
 	int left_edge = 0, right_edge = 0;
 
-	// TODO: Code from GetLineIndexCenter to find the line
-	
-	// Then code from GetLineIndexEdge to make line position into center position
-	//Found finish
-	if (isFinish())
+	position = GetLineIndexCenter(); 	
+	if(position > 0){ //reference boundary should be on the right
+		position = -(100-position);	
+	}	
+	else if(position < 0){ //reference boundary should be on the left
+		position = 100+position;
+	}
+	else if (isFinish())
 		position = FINISH;
-	else if ((left_edge > right_edge) & (left_edge < 50))
-		position = left_edge * 2;
-	else if ((right_edge > left_edge) & (right_edge < 50))
-		position = -right_edge * 2;
 	else
 		position = LNF;
 	return position;
