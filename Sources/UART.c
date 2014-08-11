@@ -26,7 +26,7 @@ void UART0_IRQHandler()
     
     // If there is received data, read it into the receive buffer.  If the
     // buffer is full, disable the receive interrupt.
-    if ((status & UART_S1_RDRF_MASK) && !buf_isfull(rx_buffer)) {
+    if ((status & UART_S1_RDRF_MASK)) { // && !buf_isfull(rx_buffer)) {
         buf_put_byte(rx_buffer, UART0_D);
         if(buf_isfull(rx_buffer))
             UART0_C2 &= ~UART_C2_RIE_MASK;

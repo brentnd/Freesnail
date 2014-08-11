@@ -190,7 +190,7 @@ void Run(int version) {
 		if (line_pos == LNF)
 			line_pos = last_line_pos;
 		else if (line_pos == FINISH) {
-			FinishLine();
+			//FinishLine();
 			line_pos = 0;
 		} else
 			last_line_pos = line_pos;

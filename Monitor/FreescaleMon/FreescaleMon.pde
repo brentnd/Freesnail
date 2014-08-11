@@ -4,12 +4,21 @@ Serial myPort;
 PImage carImage;
 PImage wheelImage;
 
+String typedText = "Tuning Parameters:";
+
 int line;
 int wheel;
 int speed;
 int ramp;
 
 int w;
+
+  byte p = 2;
+  byte p2 = 2;
+  byte i = 0;
+  byte i2 = 9;
+  byte d = 7;
+  byte d2 = 6;
 
 void setup() 
 {
@@ -34,18 +43,12 @@ void setup()
   background(0);
   fill(255);
   
+  
   // Labels
   text("Line",width*0.2,height*0.9);
   text("Turn",width*0.4,height*0.9);
   text("Speed",width*0.6,height*0.9);
   text("Ramp",width*0.8,height*0.9);
-  
-  myPort.write("a");
-  myPort.write("b");
-  myPort.write("c");
-  myPort.write("d");
-  myPort.write("e");
-  myPort.write(13);
 }
 
 
@@ -61,6 +64,13 @@ void draw()
   showSpeed();
   
   updateStatus();
+  
+  noStroke();
+  fill(0);
+  rect(0, 2*height/3-30, width, 40);
+  fill(255);
+  text(typedText, width/2, 2*height/3-10);
+  text("Kp: "+p+"."+p2+"  Ki: "+i+"."+i2+"  Kd: "+d+"."+d2, width/2, 2*height/3+8);
 }
 
 void displayStatus()
@@ -111,19 +121,14 @@ void showSpeed()
 
 void updateParams()
 {
-  byte p = 0;
-  byte p2 = 0;
-  byte i = 0;
-  byte i2 = 0;
-  byte d = 0;
-  byte d2 = 0;
+  println("Updating tuning parameters");  
   myPort.write(p);
   myPort.write(p2);
   myPort.write(i);
   myPort.write(i2);
   myPort.write(d);
   myPort.write(d2);
-  println("Updating tuning parameters");
+  typedText = "Tuning Parameters:";
 }
 
 void updateStatus()
@@ -159,12 +164,35 @@ void updateStatus()
   }
 }
 
+void parseText()
+{
+  String[] piece = split(typedText, ":");
+  String[] tokens = splitTokens(piece[1],"., ");
+  p = (byte)int(tokens[0]);
+  p2 = (byte)int(tokens[1]);
+  i = (byte)int(tokens[2]);
+  i2 = (byte)int(tokens[3]);
+  d = (byte)int(tokens[4]);
+  d2 = (byte)int(tokens[5]);
+}
+
 
 void keyPressed() {
   switch(key)
   {
-    default:
+    case BACKSPACE:
+      typedText = typedText.substring(0,max(0,typedText.length()-1));
+      break;
+    case ENTER:
+    case RETURN:
+      parseText();
       updateParams();
+      break;
+    case ESC:
+    case DELETE:
+      break;
+    default:
+      typedText += key;
       break;
   }
 }
