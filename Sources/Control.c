@@ -137,18 +137,12 @@ void InitializeControls(int version) {
 	// Start different programs based on the on-board buttons
 	switch (version) {
 	case 0:
+  default:
 		brake_speed = -45;
 		turn_speed = 51;
 		medium_speed = 55;
 		straight_speed = 70;
 		TunePID(2.2, 0.9, 7.6);
-		break;
-	default:
-		brake_speed = -48;
-		turn_speed = 51;
-		medium_speed = 54;
-		straight_speed = 64;
-		TunePID(2.2, 1.5, 7.5);
 		break;
 	}
 }
@@ -174,7 +168,7 @@ void Run(int version) {
 
 	// Enable motors after they're stopped
 	SetMotors(0, 0);
-	HBRIDGE_DISABLE;
+	HBRIDGE_ENABLE;
 
 	for (;;) {
 		// Poll for new image (~10ms)
@@ -230,15 +224,27 @@ void Run(int version) {
       uart_write(status,4);
       trans = 0;
 		}
-		if(uart_rx(6)) {
-		  char update[6];
-		  uart_read(update,6);
+		if(uart_rx(7)) {
+		  char update[7];
+		  uart_read(update,7);
 	    char p = update[0];
 	    char p2 = update[1];
 	    char i = update[2];
 	    char i2 = update[3];
 	    char d = update[4];
 	    char d2 = update[5];
+      char stopgo = update[6];
+      int stop = (int)stopgo;
+      if(stop)
+      {
+        brake_speed =    0;
+        turn_speed =     0;
+        medium_speed =   0;
+        straight_speed = 0;
+      } else 
+      {
+        InitializeControls(0);
+      }
 	    double newp = (double)p + (double)(p2/10.0);
       double newi = (double)i + (double)(i2/10.0);
       double newd = (double)d + (double)(d2/10.0);

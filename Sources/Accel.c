@@ -101,8 +101,8 @@ void PORTA_IRQHandler() {
 	if(Zout < 4000)
 	{
 		if(Yout < -600)
-			ramp = -1;
-		else if(Yout > 600)
 			ramp = 1;
+		else if(Yout > 600)
+			ramp = -1;
 	}
 }

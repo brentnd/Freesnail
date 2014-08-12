@@ -13,12 +13,13 @@ int ramp;
 
 int w;
 
-  byte p = 2;
-  byte p2 = 2;
-  byte i = 0;
-  byte i2 = 9;
-  byte d = 7;
-  byte d2 = 6;
+byte p = 2;
+byte p2 = 2;
+byte i = 0;
+byte i2 = 9;
+byte d = 7;
+byte d2 = 6;
+byte stopgo = 1;
 
 void setup() 
 {
@@ -128,6 +129,7 @@ void updateParams()
   myPort.write(i2);
   myPort.write(d);
   myPort.write(d2);
+  myPort.write(stopgo);
   typedText = "Tuning Parameters:";
 }
 
@@ -176,6 +178,11 @@ void parseText()
   d2 = (byte)int(tokens[5]);
 }
 
+void mousePressed() 
+{
+  stopgo = byte(1-stopgo);
+  updateParams();
+}
 
 void keyPressed() {
   switch(key)
