@@ -33,17 +33,6 @@ void SetVelocity(int direction, int speed) {
 		speed_right = speed;
 	}
 
-	// Going down the ramp
-	if (ramp == -1) {
-		speed_left = brake_speed;
-		speed_right = brake_speed;
-	}
-	// Going up the ramp
-	else if (ramp == 1) {
-		speed_left = straight_speed;
-		speed_right = straight_speed;
-	}
-
 	SetSpeed(speed_left, speed_right);
 }
 
@@ -96,6 +85,16 @@ int ComputeSpeed(int direction) {
 		else
 			new_speed = turn_speed;
 	}
+
+  // Going down the ramp
+  if (ramp == -1) {
+    new_speed = brake_speed;
+  }
+  // Going up the ramp
+  else if (ramp == 1) {
+    new_speed = straight_speed;
+  }
+	
 	return new_speed;
 
 }
@@ -219,7 +218,7 @@ void Run(int version) {
 		  char status[4];
 		  status[0] = (char)(lines+100);
       status[1] = (char)(direction+100);
-      status[2] = (char)(speed);
+      status[2] = (char)(speed+100);
       status[3] = (char)(ramp+1);
       uart_write(status,4);
       trans = 0;

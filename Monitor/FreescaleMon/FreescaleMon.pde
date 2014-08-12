@@ -85,9 +85,9 @@ void displayStatus()
   text(speed,width*0.6,h);
   
   String rampText = "-";
-  if(ramp == -1)
-    rampText = "UP";
   if(ramp == 1)
+    rampText = "UP";
+  if(ramp == -1)
     rampText = "DOWN";
   text(rampText,width*0.8,h);
 }
@@ -109,14 +109,17 @@ void showWheel()
 
 void showSpeed()
 {
+  int tspeed = speed;
+  if(tspeed < 0)
+    tspeed = 0;
   fill(0,40);
   rect(.1*width,0,w*3,height*0.5);
-  float ypos = (1-(speed/100.0))*(width*0.5-w);
+  float ypos = (1-(tspeed/100.0))*(width*0.5-w);
   // Red
-  if(speed < 10)
+  if(tspeed < 10)
     fill(255,0,0);
   else
-    fill(350-speed*3,180,0);
+    fill(350-tspeed*3,180,0);
   rect(.1*width,ypos,w*3,w);
 }
 
@@ -160,7 +163,7 @@ void updateStatus()
     {
       line  = int(inBuffer[0])-100;
       wheel = int(inBuffer[1])-100;
-      speed = int(inBuffer[2]);
+      speed = int(inBuffer[2])-100;
       ramp  = int(inBuffer[3])-1;
     }
   }
