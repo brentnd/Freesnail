@@ -50,7 +50,7 @@ void setup()
   text("Turn",width*0.4,height*0.9);
   text("Speed",width*0.6,height*0.9);
   text("Ramp",width*0.8,height*0.9);
-  textSize(26); 
+  textSize(26);
 }
 
 
