@@ -163,12 +163,11 @@ void Run(int version) {
 
 	// Enable motors after they're stopped
 	SetMotors(0, 0);
-	HBRIDGE_DISABLE;
+	HBRIDGE_ENABLE;
 
 	for (;;) {
 		// Poll for new image (~10ms)
-		while (!LineScanImageReady)
-			;
+		while (!LineScanImageReady);
 
 		// Get Camera Index (-100 to 100)
 		//line_pos = GetLineIndexCenter();
@@ -205,8 +204,5 @@ void Run(int version) {
 		// Update servo and motors
 		SetVelocity(direction, speed);
 
-#ifdef MONITOR
-	  io_printf("Loop Data: INSERT DATA HERE\n");
-#endif
 	}
 }
