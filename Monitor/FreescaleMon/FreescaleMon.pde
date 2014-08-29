@@ -50,6 +50,7 @@ void setup()
   text("Turn",width*0.4,height*0.9);
   text("Speed",width*0.6,height*0.9);
   text("Ramp",width*0.8,height*0.9);
+  textSize(26);
 }
 
 
@@ -63,15 +64,16 @@ void draw()
   stroke(255);
   showWheel();
   showSpeed();
-  
-  updateStatus();
+  showGoStop();  
   
   noStroke();
   fill(0);
-  rect(0, 2*height/3-30, width, 40);
+  rect(0, 2*height/3-40, width, 60);
   fill(255);
   text(typedText, width/2, 2*height/3-10);
-  text("Kp: "+p+"."+p2+"  Ki: "+i+"."+i2+"  Kd: "+d+"."+d2, width/2, 2*height/3+8);
+  text("Kp: "+p+"."+p2+"  Ki: "+i+"."+i2+"  Kd: "+d+"."+d2, width/2, 2*height/3+20);
+  
+  updateStatus();
 }
 
 void displayStatus()
@@ -110,10 +112,18 @@ void showWheel()
 void showSpeed()
 {
   int tspeed = speed;
-  if(tspeed < 0)
-    tspeed = 0;
   fill(0,40);
   rect(.1*width,0,w*3,height*0.5);
+  noStroke();
+  fill(0);
+  rect(0.05*width,0.505*height,100,50);
+  stroke(255);
+  fill(255);
+  if(tspeed < 0)
+  {
+    text("Brake",0.13*width,0.55*height);
+    tspeed = 0;
+  }
   float ypos = (1-(tspeed/100.0))*(width*0.5-w);
   // Red
   if(tspeed < 10)
@@ -123,9 +133,25 @@ void showSpeed()
   rect(.1*width,ypos,w*3,w);
 }
 
+void showGoStop()
+{
+  String te;
+  if(stopgo == 1)
+  {
+    fill(0,255,0);
+    te = "Go!";
+  }else
+  {
+    fill(255,0,0);
+    te = "STOP";
+  }
+  rect(0.82*width,0.1*height,100,30);
+  fill(255);
+  text(te,0.9*width,0.15*height);
+}
+
 void updateParams()
 {
-  println("Updating tuning parameters");  
   myPort.write(p);
   myPort.write(p2);
   myPort.write(i);
@@ -140,7 +166,8 @@ void updateStatus()
 {
   byte[] inBuffer = new byte[4];
   
-  while(myPort.available() < 4);
+  if(myPort.available() < 4)
+    return;
   
   inBuffer = myPort.readBytes();
   if(inBuffer != null)
