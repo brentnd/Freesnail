@@ -11,14 +11,6 @@
 #include "PID.h"
 #include "Accel.h"
 
-// Transmit serial data to monitor run
-//#define MONITOR
-#define MONITOR
-
-#ifdef MONITOR
-#include "UART.h"
-#endif
-
 #define HBRIDGE_EN_LOC			(1<<21)
 #define HBRIDGE_FAULT_LOC     	(1<<20)
 

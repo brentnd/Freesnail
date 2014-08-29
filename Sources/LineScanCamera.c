@@ -185,13 +185,6 @@ void filterData() {
 
 	// Contrast stretching.
 	stretchFilter();
-	
-#ifdef MONITOR
-    io_printf("Camera Data: ");
-    for(i=0; i<100; i++)
-      io_printf("%04d ",LineScanData[i]);
-    io_printf("\n");
-#endif
 
 	threshold = 1000;
 
