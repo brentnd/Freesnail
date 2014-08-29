@@ -186,7 +186,7 @@ void filterData() {
 	// Contrast stretching.
 	stretchFilter();
 
-	threshold = 1000;
+	threshold = 1850;
 
 	// 1 for black, 0 for white
 	for (i = 0; i < 100; i++)
