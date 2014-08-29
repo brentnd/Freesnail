@@ -1,6 +1,9 @@
 #include "Config.h"
 #include "buffer.h"
 
+
+#ifdef MONITOR
+
 // Circular buffers for transmit and receive
 #define BUFLEN 1024
 
@@ -209,3 +212,4 @@ void uart_init(int sysclk, int baud)
     UART0_C2 |= (UART0_C2_RE_MASK | UART0_C2_TE_MASK | UART0_C2_RIE_MASK);
     enable_irq(INT_UART0 - 16);
 }
+#endif

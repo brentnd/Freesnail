@@ -137,9 +137,9 @@ void InitializeControls(int version) {
 	switch (version) {
 	case 0:
   default:
-		brake_speed = -45;
-		turn_speed = 51;
-		medium_speed = 55;
+		brake_speed    = -45;
+		turn_speed     = 51;
+		medium_speed   = 55;
 		straight_speed = 70;
 		TunePID(2.2, 0.9, 7.6);
 		break;
@@ -183,7 +183,7 @@ void Run(int version) {
 		if (line_pos == LNF)
 			line_pos = last_line_pos;
 		else if (line_pos == FINISH) {
-			//FinishLine();
+			FinishLine();
 			line_pos = 0;
 		} else
 			last_line_pos = line_pos;

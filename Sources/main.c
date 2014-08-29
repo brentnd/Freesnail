@@ -25,10 +25,12 @@ int main(void) {
 	}
 	// Count down to start
 
+#ifdef MONITOR
   uart_putchar((char)(3));
   uart_putchar((char)(2));
   uart_putchar((char)(1));
   uart_putchar((char)(0));
+#endif
   
 	LED1_ON; LED2_ON; LED3_ON; LED0_OFF;
 	// 3
