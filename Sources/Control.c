@@ -135,12 +135,31 @@ void InitializeControls(int version) {
 	speedC = 0;
 	// Start different programs based on the on-board buttons
 	switch (version) {
+	case 5:
+    brake_speed    = -45;
+    turn_speed     = 51;
+    medium_speed   = 55;
+    straight_speed = 70;
+    TunePID(2.2, 0.9, 7.6);
 	case 0:
+    brake_speed    = -10;
+    turn_speed     = 49;
+    medium_speed   = 50;
+    straight_speed = 55;
+    TunePID(2.2, 0.9, 7.6);
+    break;
+	case 1:
+    brake_speed    = -30;
+    turn_speed     = 50;
+    medium_speed   = 53;
+    straight_speed = 58;
+    TunePID(2.2, 0.9, 7.6);
+    break;
   default:
-		brake_speed    = -45;
-		turn_speed     = 51;
-		medium_speed   = 55;
-		straight_speed = 70;
+		brake_speed    = -10;
+		turn_speed     = 49;
+		medium_speed   = 50;
+		straight_speed = 55;
 		TunePID(2.2, 0.9, 7.6);
 		break;
 	}
@@ -175,8 +194,8 @@ void Run(int version) {
 			;
 
 		// Get Camera Index (-100 to 100)
-		//line_pos = GetLineIndexCenter();
 		line_pos = GetLineIndexEdge();
+		//line_pos = GetLineIndexEdge();
 
 		// If camera can't see the line (Line not found)
 		// continue on our path unless timed out

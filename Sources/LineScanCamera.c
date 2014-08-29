@@ -186,7 +186,7 @@ void filterData() {
 	// Contrast stretching.
 	stretchFilter();
 
-	threshold = 1000;
+	threshold = 2000;
 
 	// 1 for black, 0 for white
 	for (i = 0; i < 100; i++)
@@ -264,30 +264,6 @@ int GetLineIndexCenter() {
 		position = FINISH;
 	else if (wcount == 1)
 		position = (save_r + save_l) - 100;
-	else
-		position = LNF;
-	return position;
-}
-
-/*
- * LIGHT SURFACE
- * Find the position of the center of the track when
- * the track is white with dark edges and a light surface.
- */
-//TODO possibly address issue of "point of no return"
-int GetLineIndexEdgeLight() {
-	int position = 0;
-	int left_edge = 0, right_edge = 0;
-
-	position = GetLineIndexCenter(); 	
-	if(position > 0){ //reference boundary should be on the right
-		position = -(100-position);	
-	}	
-	else if(position < 0){ //reference boundary should be on the left
-		position = 100+position;
-	}
-	else if (isFinish())
-		position = FINISH;
 	else
 		position = LNF;
 	return position;

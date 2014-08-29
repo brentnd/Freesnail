@@ -12,6 +12,7 @@ void filterData();
 int isFinish();
 int GetLineIndexCenter();
 int GetLineIndexEdge();
+int GetLineIndexEdgeLight();
 int GetLineIndexRight();
 
 // Return value for (L)ine (N)ot (F)ound
