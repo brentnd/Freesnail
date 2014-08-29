@@ -84,6 +84,13 @@ void medianFilter() {
 	}
 }
 
+int average() {
+  int i;
+  int sum = 0;
+  for (i = 1; i < 99; i++)
+    sum += LineScanData[i];
+  return (int)sum/100;
+}
 /* Maximum value of data set */
 int maxValue() {
 	int i;
@@ -186,6 +193,7 @@ void filterData() {
 	// Contrast stretching.
 	stretchFilter();
 
+	int avg = average();
 	threshold = 2000;
 
 	// 1 for black, 0 for white
@@ -284,12 +292,12 @@ int GetLineIndexEdge() {
 	// Reset camera ready signal
 	LineScanImageReady = FALSE;
 
-	while (i < 50)
+	while (i < 98)
 		if (LineScanData[i++] == 0)
 			break;
 	left_edge = i;
 	i = 99;
-	while (i > 50)
+	while (i > 2)
 		if (LineScanData[i--] == 0)
 			break;
 	right_edge = (100 - i);
@@ -297,9 +305,9 @@ int GetLineIndexEdge() {
 	//Found finish
 	if (isFinish())
 		position = FINISH;
-	else if ((left_edge > right_edge) & (left_edge < 50))
+	else if ((left_edge > right_edge) & (left_edge < 98))
 		position = left_edge * 2;
-	else if ((right_edge > left_edge) & (right_edge < 50))
+	else if ((right_edge > left_edge) & (right_edge < 98))
 		position = -right_edge * 2;
 	else
 		position = LNF;

@@ -92,7 +92,7 @@ int ComputeSpeed(int direction) {
   }
   // Going up the ramp
   else if (ramp == 1) {
-    new_speed = straight_speed;
+    new_speed = 68;//straight_speed;
   }
 	
 	return new_speed;
@@ -101,13 +101,6 @@ int ComputeSpeed(int direction) {
 
 /* Stop the car at the finish */
 void FinishLine() {
-
-  char finish[4];
-  finish[0] = 0;
-  finish[1] = 0;
-  finish[2] = 0;
-  finish[3] = 0;
-  uart_write(finish,4);
   
 	Delay_mS(100);
 	SetSpeed(-60, -60);
@@ -135,32 +128,12 @@ void InitializeControls(int version) {
 	speedC = 0;
 	// Start different programs based on the on-board buttons
 	switch (version) {
-	case 5:
-    brake_speed    = -45;
-    turn_speed     = 51;
-    medium_speed   = 55;
-    straight_speed = 70;
-    TunePID(2.2, 0.9, 7.6);
-	case 0:
-    brake_speed    = -10;
-    turn_speed     = 49;
-    medium_speed   = 50;
-    straight_speed = 55;
-    TunePID(2.2, 0.9, 7.6);
-    break;
-	case 1:
-    brake_speed    = -30;
-    turn_speed     = 50;
-    medium_speed   = 53;
-    straight_speed = 58;
-    TunePID(2.2, 0.9, 7.6);
-    break;
   default:
-		brake_speed    = -10;
-		turn_speed     = 49;
-		medium_speed   = 50;
-		straight_speed = 55;
-		TunePID(2.2, 0.9, 7.6);
+    brake_speed    = -10;
+    turn_speed     = 52;
+    medium_speed   = 55;
+    straight_speed = 60;
+    TunePID(2.4, 0.9, 0.0);
 		break;
 	}
 }
@@ -180,7 +153,6 @@ void Run(int version) {
 	int last_line_pos = 0;
 	int lines = 0;
 	int diff;
-	int trans = 0;
 
 	InitializeControls(version);
 
@@ -202,13 +174,13 @@ void Run(int version) {
 		if (line_pos == LNF)
 			line_pos = last_line_pos;
 		else if (line_pos == FINISH) {
-			FinishLine();
+			//FinishLine();
 			line_pos = 0;
 		} else
 			last_line_pos = line_pos;
 
 		diff = last_line_pos - line_pos;
-		if ((diff > 30) | (diff < -30))
+		if ((diff > 35) | (diff < -35))
 			line_pos = last_line_pos;
 
 		i = 1 - i;
